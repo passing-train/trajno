@@ -144,7 +144,14 @@
     .entryinputOption {
         justify-content: flex-start;
         margin-bottom: 10px;
+        font-size: 150%;
     }
+    .entryinputOption input
+    {
+        font-size: 150%;
+        padding:0.2em;
+    }
+
 
     .entryinputVersion {
         text-align: right;

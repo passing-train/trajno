@@ -1,6 +1,6 @@
 <template>
     <div id="app" class="content">
-        <navigation id="navigation" :items=navigationItems :switchPage="switchPage"/>
+        <navigation id="navigation" :items=navigationItems :switchPage="switchPage" :page="page"/>
         <app-content id="content" :page="page"/>
     </div>
 </template>
@@ -22,7 +22,7 @@
     type NavigationItem = {
         icon: string,
         iconAlt: string,
-        page: PageComponent
+        active: boolean
     }
 
     @Component({
@@ -35,13 +35,12 @@
         page: PageComponent = Entryinput;
 
         navigationItems: NavigationItem[] = [
-
-            {icon: 'input', iconAlt: 'input', page: Entryinput},
-
+            {icon: 'input', iconAlt: 'input' ,page: Entryinput},
             {icon: 'dashboard', iconAlt: 'dashboard', page: Dashboard},
             {icon: 'query_builder', iconAlt: 'processes', page: Processes},
             {icon: 'settings', iconAlt: 'settings', page: Settings}
         ];
+
 
         switchPage(newPage: PageComponent) {
             this.page = newPage;

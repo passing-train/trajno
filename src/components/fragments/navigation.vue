@@ -1,7 +1,10 @@
 <template>
     <div class="navigation">
         <div v-for="item in items" v-bind:key="item.icon">
-            <navigation-item :icon=item.icon :iconAlt=item.iconAlt :switchPage="switchPage"
+            <navigation-item :icon=item.icon
+                             :activePage=page
+                             :iconAlt=item.iconAlt
+                             :switchPage="switchPage"
                              :page="item.page"/>
         </div>
     </div>
@@ -17,8 +20,10 @@
     })
     export default class Navigation extends Vue {
         @Prop() private items!: object;
+        @Prop() page!: any;
         @Prop() switchPage!: any;
     }
+
 </script>
 
 <style scoped>
