@@ -301,6 +301,7 @@ if (!lock && !isDevelopment) {
             if (win.isMinimized()) {
                 win.restore();
             }
+            win.show();
             win.focus();
         }
     });
@@ -347,9 +348,8 @@ function resume() {
     tray.setImage(iconUrl);
 }
 
-
 function hideWindowUntillNextQuestion(){
-  let minutes = 1;
+  let minutes = 0.1;
 
   win.hide();
 
@@ -362,4 +362,5 @@ function hideWindowUntillNextQuestion(){
 function showWindowForNextQuestion(){
   tray.setImage(pauseIconUrl);
     win.show();
+    win.webContents.send('wazzup', 'whoooooooh!')
 }

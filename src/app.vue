@@ -22,7 +22,7 @@
     type NavigationItem = {
         icon: string,
         iconAlt: string,
-        active: boolean
+        page: PageComponent
     }
 
     @Component({

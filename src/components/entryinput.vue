@@ -33,9 +33,20 @@
     @Component
     export default class Entryinput extends Vue implements Updatable {
 
-        public entryText: string = '';
+        public entryText: string = 'start text';
 
         autoStartup: boolean = this.hasAutoStart();
+
+        mounted() {
+            ipcRenderer.on('wazzup', this.focusWazzup.bind(this))
+            this.focusWazzup();
+        }
+
+        focusWazzup(){
+            let theInput = this.$refs.entryText;
+            theInput.focus();
+            theInput.setSelectionRange(0, theInput.value.length);
+        }
 
         protected toggleAutostart() {
             this.autoStartup = ipcRenderer.sendSync("autostart-toggle", !this.autoStartup);
