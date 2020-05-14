@@ -8,9 +8,30 @@
                     <div class="entryinputOption">
                         <label>
                         Whats going on?
-                            <input type="string" ref="entryText" v-on:keyup.enter="save" v-model="entryText">
+
+                        <div class="autosuggest-container">
+                          <vue-autosuggest
+                            v-model="query"
+                            ref="entryText"
+                            :suggestions="filteredOptions"
+                            v-on:keyup.enter="save"
+                            @focus="focusMe"
+                            @click="clickHandler"
+                            @input="onInputChange"
+                            @selected="onSelected"
+                            :get-suggestion-value="getSuggestionValue"
+                            :input-props="{id:'autosuggest__input', placeholder:'Do you feel lucky, punk?'}">
+
+                              <div slot-scope="{suggestion}" style="display: flex; align-items: center;">
+                                   <div style="{ display: 'flex', color: 'navyblue'}">{{suggestion.item.name}}</div>
+                              </div>
+                          </vue-autosuggest>
+                        </div>
+
                         </label>
                     </div>
+
+
                     <div class="entryinputOption">
                         <button @click="save()">Save</button>
                     </div>
@@ -29,13 +50,26 @@
     import ipcRenderer from '@/components/ipc_renderer';
     import Updatable from "@/components/updatable";
     import {shell} from 'electron';
+    import { VueAutosuggest } from 'vue-autosuggest';
 
-    @Component
+    @Component({
+        components: {VueAutosuggest}
+    })
     export default class Entryinput extends Vue implements Updatable {
 
-        public entryText: string = 'start text';
-
-        autoStartup: boolean = this.hasAutoStart();
+      entryText: string = 'start text';
+      query: string = "start text";
+      selected: string = "";
+      suggestions = [
+        {
+          data: [
+                  { id: 1, name: "Frodo"},
+                  { id: 2, name: "Samwise"},
+                  { id: 3, name: "Gandalf"},
+                  { id: 4, name: "Aragorn"}
+          ]
+        }
+      ];
 
         mounted() {
             ipcRenderer.on('wazzup', this.focusWazzup.bind(this))
@@ -43,25 +77,37 @@
         }
 
         focusWazzup(){
-            let theInput = this.$refs.entryText;
+            let theInput = this.$refs.entryText.$el.querySelector("input")
             theInput.focus();
             theInput.setSelectionRange(0, theInput.value.length);
         }
 
-        protected toggleAutostart() {
-            this.autoStartup = ipcRenderer.sendSync("autostart-toggle", !this.autoStartup);
+        onSelected(item){
+            this.selected = item.item;
         }
 
-        protected changePollTime(event: any) {
-            this.setSetting('heartbeatPollTime', event.target.value);
+        clickHandler(item){
+
         }
 
-        protected changeIdleTime(event: any) {
-            this.setSetting('heartbeatIdleTime', event.target.value);
+        onInputChange(item){
         }
 
-        private hasAutoStart(): boolean {
-            return ipcRenderer.sendSync("autostart-isenabled");
+        getSuggestionValue(suggestion) {
+          return suggestion.item.name;
+        }
+        focusMe(e) {
+          //console.log(e) // FocusEvent
+        }
+
+        get filteredOptions() {
+          return [
+           {
+              data: this.suggestions[0].data.filter(option => {
+               return option.name.toLowerCase().indexOf(this.query.toLowerCase()) > -1;
+              })
+            }
+          ];
         }
 
         update(): void {
@@ -79,28 +125,66 @@
             return ipcRenderer.sendSync('get-last-entryinput');
         }
 
-        protected getSetting(key: string): string {
-            return ipcRenderer.sendSync('get-setting', key);
-        }
-
         protected save(): void {
-            ipcRenderer.send('set-entryinput', this.entryText);
+
+            let theInput = this.$refs.entryText.$el.querySelector("input")
+            ipcRenderer.send('set-entryinput', theInput.value);
             ipcRenderer.send('hide-main');
         }
 
-        protected setSetting(key: string, value: string) {
-            return ipcRenderer.sendSync('set-setting', key, value);
-        }
-
-        public openGitHub() {
-            shell.openExternal("https://github.com/kmteras/timenaut/issues")
-        }
     }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
+
+<style>
+
+    .autosuggest-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    #autosuggest {
+        width: 100%; display: block;
+    }
+    .autosuggest__results-item--highlighted {
+        background-color: #ccc;
+    }
+
+    .autosuggest__results ul {
+        width: 90%;
+        color: rgba(30, 39, 46,1.0);
+        list-style: none;
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        border: 1px #ccc solid;
+    }
+
+    .autosuggest__results ul li {
+        margin: 0 0 0 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    #autosuggest__input {
+        padding:0.4em;
+        caret-color: #ddd;
+        position: relative;
+        display: block;
+        font-size: 130%;
+        height: 60px;
+        border: 1px solid #616161;
+        border-radius: 3px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+</style>
 
 <style scoped>
+
     #entryinput {
         display: grid;
         height: 100%;
@@ -170,4 +254,6 @@
         grid-area: footer;
 
     }
+
+
 </style>

@@ -8,6 +8,22 @@ export default class Entryinputs {
         ipcMain.on('set-entryinput', async (event: Event, entryText: string) => {
             event.returnValue = await Entryinputs.newEntry(entryText);
         });
+
+        ipcMain.on('get-suggest-data', async (event: Event) => {
+            event.returnValue = await this.getSuggestData();
+        });
+    }
+    async getSuggestData() {
+        try {
+            let results: any = await Database.all(`
+                SELECT entry_text
+                FROM tempo_entries
+                WHERE true`);
+
+            return results;
+        } catch (e) {
+            log.error(e);
+        }
     }
 
     public static async newEntry(entryText: string): Promise<boolean> {
