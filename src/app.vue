@@ -9,6 +9,7 @@
     import {Component, Vue} from 'vue-property-decorator';
     import AppContent from '@/components/fragments/content.vue';
     import Navigation from '@/components/fragments/navigation.vue';
+    import Entryinput from "@/components/entryinput.vue";
     import Dashboard from "@/components/dashboard.vue";
     import Processes from "@/components/processes.vue";
     import Settings from "@/components/settings.vue";
@@ -31,9 +32,12 @@
         },
     })
     export default class App extends Vue {
-        page: PageComponent = Dashboard;
+        page: PageComponent = Entryinput;
 
         navigationItems: NavigationItem[] = [
+
+            {icon: 'input', iconAlt: 'input', page: Entryinput},
+
             {icon: 'dashboard', iconAlt: 'dashboard', page: Dashboard},
             {icon: 'query_builder', iconAlt: 'processes', page: Processes},
             {icon: 'settings', iconAlt: 'settings', page: Settings}

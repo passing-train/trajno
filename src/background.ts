@@ -11,6 +11,7 @@ import AutoLaunch from 'auto-launch';
 import path from 'path';
 import log from 'electron-log'
 import Settings from "@/services/settings";
+import Entryinputs from "@/services/entryinputs";
 import {scheduleJob} from 'node-schedule'
 import DatabaseConversionService from "@/services/database_conversion_service";
 
@@ -129,6 +130,7 @@ async function createWindow() {
     await db.update();
 
     await Settings.init();
+    await Entryinputs.init();
 
     // TODO: remove these hacks after electron-updater fixes appimage
     if (process.env.DESKTOPINTEGRATION === 'AppImageLauncher') {

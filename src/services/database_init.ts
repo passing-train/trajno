@@ -1,4 +1,38 @@
 export default `
+
+    CREATE TABLE IF NOT EXISTS tempo_customers
+    (
+        id                         INTEGER PRIMARY KEY,
+        customer_external_code     TEXT,
+        name                       TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS tempo_projects
+    (
+        id                        INTEGER PRIMARY KEY,
+        project_external_code     TEXT,
+        name                      TEXT,
+        tempo_customer_id         INTEGER,
+        FOREIGN KEY (tempo_customer_id) REFERENCES tempo_customers (id)
+    );
+
+    CREATE TABLE IF NOT EXISTS tempo_entries
+    (
+        id                        INTEGER PRIMARY KEY,
+        project_external_code     TEXT,
+        tempo_customer_id         INTEGER,
+        tempo_project_id          INTEGER,
+        entry_text                VARCHAR
+        last_in_block             INTEGER,
+        not_in_export             INTEGER,
+        sticky                    INTEGER,
+        time_delta                INTEGER,
+        created_at                INTEGER,
+        extra_time                FLOAT,
+        FOREIGN KEY (tempo_customer_id) REFERENCES tempo_customers (id),
+        FOREIGN KEY (tempo_project_id) REFERENCES tempo_projects (id)
+    );
+
     CREATE TABLE IF NOT EXISTS processes
     (
         id       INTEGER PRIMARY KEY,
