@@ -2,7 +2,6 @@ import Database from "@/services/database";
 import {ipcMain} from 'electron'
 import log from 'electron-log'
 
-
 export default class Settings {
     private static settings: { [key: string]: string } = {};
 

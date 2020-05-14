@@ -8,7 +8,7 @@
                     <div class="entryinputOption">
                         <label>
                         Whats going on?
-                            <input type="string" v-on:keyup.enter="save" v-model="entryText">
+                            <input type="string" ref="entryText" v-on:keyup.enter="save" v-model="entryText">
                         </label>
                     </div>
                     <div class="entryinputOption">
@@ -74,6 +74,7 @@
 
         protected save(): void {
             ipcRenderer.send('set-entryinput', this.entryText);
+            ipcRenderer.send('hide-main');
         }
 
         protected setSetting(key: string, value: string) {

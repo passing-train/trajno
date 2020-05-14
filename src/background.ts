@@ -219,6 +219,12 @@ async function createWindow() {
         event.returnValue = app.getVersion();
     });
 
+    ipcMain.on('hide-main', async (event: any) => {
+
+      hideWindowUntillNextQuestion();
+
+    });
+
     ipcMain.on('autostart-isenabled', async (event: any, arg: any) => {
         event.returnValue = await autoLauncher.isEnabled();
     });
@@ -339,4 +345,21 @@ function resume() {
     log.info("Resumed tracking");
     switchMenu(menuItems, pauseMenu);
     tray.setImage(iconUrl);
+}
+
+
+function hideWindowUntillNextQuestion(){
+  let minutes = 1;
+
+  win.hide();
+
+    tray.setImage(iconUrl);
+  setTimeout(function(){
+    showWindowForNextQuestion();
+  }, (1000 * 60 * minutes));
+}
+
+function showWindowForNextQuestion(){
+  tray.setImage(pauseIconUrl);
+    win.show();
 }
