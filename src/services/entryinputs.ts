@@ -12,7 +12,32 @@ export default class Entryinputs {
         ipcMain.on('get-suggest-data', async (event: Event, queryText: string) => {
             event.returnValue = await this.getSuggestData(queryText);
         });
+
+        ipcMain.on('get-entry-data', async (event: Event ) => {
+            event.returnValue = await this.getEntryData();
+        });
     }
+
+    public static async getEntryData() {
+        try {
+            let results: any = await Database.all(`
+                SELECT
+                    entry_text as title,
+                    tempo_customer_id as customer,
+                    tempo_project_id as project,
+                    tempo_customer_id as total_time,
+                    tempo_customer_id as today_time
+                FROM tempo_entries
+                GROUP BY title
+                `);
+
+        log.debug(results);
+            return results;
+        } catch (e) {
+            log.error(e);
+        }
+    }
+
 
     public static async getSuggestData(queryText: string) {
         try {

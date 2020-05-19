@@ -10,6 +10,9 @@
     import AppContent from '@/components/fragments/content.vue';
     import Navigation from '@/components/fragments/navigation.vue';
     import Entryinput from "@/components/entryinput.vue";
+    import Entries from "@/components/entries.vue";
+    import Customers from "@/components/customers.vue";
+    import Projects from "@/components/projects.vue";
     import Dashboard from "@/components/dashboard.vue";
     import Processes from "@/components/processes.vue";
     import Settings from "@/components/settings.vue";
@@ -36,11 +39,13 @@
 
         navigationItems: NavigationItem[] = [
             {icon: 'input', iconAlt: 'input' ,page: Entryinput},
-            {icon: 'dashboard', iconAlt: 'dashboard', page: Dashboard},
-            {icon: 'query_builder', iconAlt: 'processes', page: Processes},
+            {icon: 'list', iconAlt: 'list', page: Entries},
+            {icon: 'face', iconAlt: 'face', page: Customers},
+            {icon: 'business_center', iconAlt: 'business_center', page: Projects},
+            {icon: 'show_chart', iconAlt: 'dashboard', page: Dashboard},
+            {icon: 'assignment', iconAlt: 'processes', page: Processes},
             {icon: 'settings', iconAlt: 'settings', page: Settings}
         ];
-
 
         switchPage(newPage: PageComponent) {
             this.page = newPage;
@@ -135,7 +140,6 @@
     .section {
         padding: 10px !important;
         margin: 0 10px 10px 0;
-        border-radius: 10px;
         background-color: #FEFEFE;
     }
 </style>
