@@ -53,9 +53,9 @@ import {shell} from 'electron';
 //import { VueAutosuggest } from 'vue-autosuggest';
 const VueAutosuggest = require('vue-autosuggest');
 
-
 declare interface SuggestData {
-    entry: string
+    id: number,
+    name: string
 }
 
 @Component({
@@ -110,11 +110,23 @@ export default class Entryinput extends Vue implements Updatable {
     getSuggestionValue(suggestion:any) {
         return suggestion.item.name;
     }
+
     focusMe(e:any) {
-        //console.log(e) // FocusEvent
     }
 
     get filteredOptions() {
+        let sdata = this.getSuggestDatas(this.query.toLowerCase());
+        //console.log(sdata) // FocusEvent
+
+        //let retdata =  [{ id: 1, name: "Hallo"}];
+
+        return [
+            {
+                data: sdata
+            }
+        ];
+
+        /*
         return [
             {
                 data: this.suggestions[0].data.filter(option => {
@@ -122,6 +134,7 @@ export default class Entryinput extends Vue implements Updatable {
                 })
             }
         ];
+        */
     }
 
     update(): void {
@@ -150,7 +163,6 @@ export default class Entryinput extends Vue implements Updatable {
 
 }
 </script>
-
 
 <style>
 

@@ -17,10 +17,13 @@ export default class Entryinputs {
     public static async getSuggestData(queryText: string) {
         try {
             let results: any = await Database.all(`
-                SELECT entry_text
+                SELECT id, entry_text as name
                 FROM tempo_entries
-                WHERE true`);
+                WHERE entry_text LIKE "%${queryText}%"
+                GROUP BY name
+                `);
 
+        log.debug(results);
             return results;
         } catch (e) {
             log.error(e);
