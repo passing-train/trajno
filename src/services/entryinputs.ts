@@ -9,11 +9,12 @@ export default class Entryinputs {
             event.returnValue = await Entryinputs.newEntry(entryText);
         });
 
-        ipcMain.on('get-suggest-data', async (event: Event) => {
-            event.returnValue = await this.getSuggestData();
+        ipcMain.on('get-suggest-data', async (event: Event, queryText: string) => {
+            event.returnValue = await this.getSuggestData(queryText);
         });
     }
-    async getSuggestData() {
+
+    public static async getSuggestData(queryText: string) {
         try {
             let results: any = await Database.all(`
                 SELECT entry_text
