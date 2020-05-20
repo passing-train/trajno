@@ -1,9 +1,12 @@
 <template>
     <div id="settings">
         <div class="section">
+
             <div class="settingsFlexRow">
+
                 <h3 class="settingsTitle">Settings</h3>
                 <hr id="settingsHr">
+
                 <div class="settingsFlexColumn" id="main1">
                     <div class="settingsOption">
                         <label>

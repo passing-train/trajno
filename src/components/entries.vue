@@ -33,6 +33,29 @@
             </div>
         </div>
 
+        <div class="section" id="editSection">
+            <div id="col1">
+
+                <div>
+                    <label>
+                        Entry
+                        <input type="text">
+                    </label>
+                </div>
+
+                <div>
+                    <label>
+                        Customer
+                        <input type="text">
+                    </label>
+                </div>
+
+            </div>
+
+
+
+        </div>
+
     </div>
 </template>
 
@@ -74,19 +97,31 @@
 </script>
 
 <style scoped>
-    #entries {
-        display: grid;
-        grid-template-columns: 1fr;
-        height: 100%;
-        margin-left: 10px;
-    }
-    #tableSection {
-        overflow: auto;
-        display: grid;
-    }
-
-#entryTableSection {
-    overflow: auto;
+#entries {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: 100%;
+    margin-left: 10px;
 }
+
+#tableSection {
+    grid-column: 1;
+    grid-row: 2 / 3;
+    overflow: auto;
+    display: grid;
+    grid-template-rows: 1fr;
+}
+
+#editSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column: 1;
+    grid-row: 3 / 3;
+}
+
+#col1 {
+    grid-column: 1 / 1;
+}
+
 
 </style>
