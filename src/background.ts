@@ -177,7 +177,7 @@ async function createWindow() {
     log.info(`iconUrl: ${iconUrl}`);
 
     win = new BrowserWindow({
-        width: 800, height: 600, resizable: true, webPreferences: {
+        width: 800, height: 600, resizable: false, webPreferences: {
             nodeIntegration: true
         },
         fullscreen: false,
@@ -197,7 +197,6 @@ async function createWindow() {
             app.dock.hide();
         }
     } else {
-        win.webContents.openDevTools()
         // No file logging for development
         log.transports.file.level = false;
     }

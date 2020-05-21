@@ -16,6 +16,10 @@ export default class Entryinputs {
         ipcMain.on('get-entry-data', async (event: Event ) => {
             event.returnValue = await this.getEntryData();
         });
+        ipcMain.on('update-entry', async (event: Event, oldTitle: string, newTitle: string ) => {
+            event.returnValue = await this.updateTitle(oldTitle, newTitle);
+        });
+
     }
 
     public static async getEntryData() {
@@ -31,7 +35,7 @@ export default class Entryinputs {
                 GROUP BY title
                 `);
 
-        log.debug(results);
+        //log.debug(results);
             return results;
         } catch (e) {
             log.error(e);
@@ -48,7 +52,7 @@ export default class Entryinputs {
                 GROUP BY name
                 `);
 
-        log.debug(results);
+        //log.debug(results);
             return results;
         } catch (e) {
             log.error(e);
@@ -66,6 +70,20 @@ export default class Entryinputs {
         log.debug(`insert input ${entryText} ${time}`);
 
         await Database.run(sql, [entryText, time])
+        return true;
+    }
+
+    public static async updateTitle(oldTitle: string, newTitle: string): Promise<boolean> {
+
+        const sql = `
+            UPDATE tempo_entries SET entry_text="${newTitle}"
+            WHERE entry_text = "${oldTitle}"
+        `;
+
+        log.debug(`sql: ${sql}`);
+        log.debug(`update old: ${oldTitle} new: ${newTitle}`);
+
+        await Database.run(sql)
         return true;
     }
 }
