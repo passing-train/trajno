@@ -25,21 +25,29 @@ declare interface CustomerID {
     id: number
 }
 
+declare interface SuggestProjectData {
+    id: number,
+    name: string
+}
+declare interface ProjectID {
+    id: number
+}
+
 @Component({
     components: VueAutosuggest
 })
 
-export default class Entries extends Vue implements Updatable {
+export default class Entries extends Vue {
 
     entryData: EntryData[] = this.getEntryData();
     selectedEntryTitle: string = "";
     editEntryTitle: string = "";
-    editEntryCustomerId: number = -1;
+    selected: string = "";
     selectedEntry: EntryData | null = null;
 
-    customerText: string = '';
+    //customerText: string = '';
     queryCustomer: string = "";
-    selected: string = "";
+    queryProject: string = "";
 
     getSuggestCustomerData(queryText: string): SuggestCustomerData[] {
         return ipcRenderer.sendSync('get-suggest-customer-data', queryText);
@@ -47,6 +55,14 @@ export default class Entries extends Vue implements Updatable {
 
     getCustomerOrInsert(name: string): CustomerID {
         return ipcRenderer.sendSync('get-customer-or-insert', name);
+    }
+
+    getSuggestProjectData(queryText: string): SuggestProjectData[] {
+        return ipcRenderer.sendSync('get-suggest-project-data', queryText);
+    }
+
+    getProjectOrInsert(name: string): ProjectID {
+        return ipcRenderer.sendSync('get-project-or-insert', name);
     }
 
     mounted() {
@@ -71,6 +87,7 @@ export default class Entries extends Vue implements Updatable {
         this.selectedEntryTitle = entry.title;
         this.editEntryTitle = this.selectedEntry.title;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
+        this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
 
     }
 
@@ -85,7 +102,18 @@ export default class Entries extends Vue implements Updatable {
             cust_id = customerId.id;
         }
 
-        await ipcRenderer.send('update-entry', this.selectedEntryTitle, this.editEntryTitle, cust_id, 0);
+        let projectId: ProjectID;
+        let prod_id: number = -1;
+
+        let theProjectText = (this.$refs.projectText as Vue);
+        let theProjectInput = theProjectText.$el.querySelector("input")
+        if(theProjectInput){
+            projectId = await this.getProjectOrInsert(theProjectInput.value);
+            prod_id = projectId.id;
+        }
+
+
+        await ipcRenderer.send('update-entry', this.selectedEntryTitle, this.editEntryTitle, cust_id, prod_id);
         this.entryData = this.getEntryData();
     }
 
@@ -94,33 +122,26 @@ export default class Entries extends Vue implements Updatable {
         this.entryData = this.getEntryData();
     }
 
-    storeCustomer(customer: SuggestCustomerData ): void {
-    }
-
-
-    update(): void {
-    }
-
     onSelected(item:any){
         this.selected = item.item;
-    }
-
-    clickHandler(item:any){
-
-    }
-
-    onInputChange(item:any){
     }
 
     getSuggestionValue(suggestion:any) {
         return suggestion.item.name;
     }
 
-    focusMe(e:any) {
-    }
 
-    get filteredOptions() {
+    get filteredCustomerOptions() {
         let sdata = this.getSuggestCustomerData(this.queryCustomer.toLowerCase());
+
+        return [
+            {
+                data: sdata
+            }
+        ];
+    }
+    get filteredProjectOptions() {
+        let sdata = this.getSuggestProjectData(this.queryProject.toLowerCase());
 
         return [
             {
@@ -136,9 +157,6 @@ export default class Entries extends Vue implements Updatable {
         <div class="section">
             <div class="entryinputFlexRow">
                 <h3 class="entryinputTitle">Entries</h3>
-                <div class="inputOption">
-                    <button @click="newRecord()">new</button>
-                </div>
             </div>
         </div>
 
@@ -163,7 +181,6 @@ export default class Entries extends Vue implements Updatable {
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
                         </tr>
                     </tbody>
                 </table>
@@ -185,16 +202,10 @@ export default class Entries extends Vue implements Updatable {
                             <vue-autosuggest
                                 v-model="queryCustomer"
                                 ref="customerText"
-                                :suggestions="filteredOptions"
-                                v-on:keyup.enter="storeCustomer"
-                                @focus="focusMe"
-                                @click="clickHandler"
-                                @input="onInputChange"
+                                :suggestions="filteredCustomerOptions"
                                 @selected="onSelected"
                                 :get-suggestion-value="getSuggestionValue"
-
                                 :input-props="{id:'autosuggest__input_super', placeholder:''}">
-
                                 <div slot-scope="{suggestion}" style="display: flex; align-items: center;">
                                     <div style="{ display: 'flex', color: 'navyblue'}">{{suggestion.item.name}}</div>
                                 </div>
@@ -217,7 +228,18 @@ export default class Entries extends Vue implements Updatable {
                 <div>
                     <label>
                         Project
-                        <input type="text">
+                        <vue-autosuggest
+                            v-model="queryProject"
+                            ref="projectText"
+                            :suggestions="filteredProjectOptions"
+                            @selected="onSelected"
+                            :get-suggestion-value="getSuggestionValue"
+                            :input-props="{id:'autosuggest__input_super', placeholder:''}">
+                            <div slot-scope="{suggestion}" style="display: flex; align-items: center;">
+                                <div style="{ display: 'flex', color: 'navyblue'}">{{suggestion.item.name}}</div>
+                            </div>
+                        </vue-autosuggest>
+
                     </label>
                 </div>
 

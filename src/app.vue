@@ -36,7 +36,7 @@
     })
     export default class App extends Vue {
     //    page: PageComponent = Entryinput;
-        page: PageComponent = Projects;
+        page: PageComponent = Entries;
 
         navigationItems: NavigationItem[] = [
             {icon: 'input', iconAlt: 'input' ,page: Entryinput},

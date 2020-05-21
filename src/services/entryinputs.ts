@@ -95,7 +95,8 @@ export default class Entryinputs {
         const sql = `
             UPDATE tempo_entries SET
             entry_text="${newTitle}",
-            tempo_customer_id = ${customerId}
+            tempo_customer_id = ${customerId},
+            tempo_project_id = ${projectId}
             WHERE entry_text = "${oldTitle}"
         `;
 
