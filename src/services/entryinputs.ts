@@ -37,12 +37,18 @@ export default class Entryinputs {
         try {
             let results: any = await Database.all(`
                 SELECT
-                    entry_text as title,
-                    tempo_customer_id as customer_id,
-                    tempo_project_id as project_id,
-                    tempo_customer_id as total_time,
-                    tempo_customer_id as today_time
-                FROM tempo_entries
+                   e.entry_text as title,
+                   e.tempo_customer_id as customer_id,
+                   c.name as customer_name,
+                   e.tempo_project_id as project_id,
+                   p.name as project_name,
+                   e.tempo_customer_id as total_time,
+                   e.tempo_customer_id as today_time
+                FROM tempo_entries e
+                LEFT JOIN tempo_customers c
+                    ON c.id = e.tempo_customer_id
+                LEFT JOIN tempo_projects p
+                    ON p.id = e.tempo_project_id
                 GROUP BY title
                 `);
 

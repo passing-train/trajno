@@ -19,8 +19,8 @@ declare interface SuggestData {
 
 export default class Entryinput extends Vue implements Updatable {
 
-    entryText: string = 'start text';
-    query: string = "start text";
+    entryText: string = "";
+    query: string = "";
     selected: string = "";
 
     getSuggestDatas(queryText: string): SuggestData[] {

@@ -28,7 +28,6 @@ export default class Customers {
     }
     public static async getCustomerData() {
 
-
         try {
             let results: any = await Database.all(`
                 SELECT
@@ -36,7 +35,6 @@ export default class Customers {
                 FROM tempo_customers
                 `);
 
-            log.debug(results);
             return results;
         } catch (e) {
             log.error(e);
@@ -99,7 +97,6 @@ export default class Customers {
             WHERE id = ${id}
         `;
 
-        log.debug(`sql: ${sql}`);
         await Database.run(sql);
         return true;
 

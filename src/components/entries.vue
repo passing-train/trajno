@@ -9,10 +9,12 @@ const VueAutosuggest = require('vue-autosuggest');
 
 declare interface EntryData {
     title: string,
-        customer_id: number,
-        project_id: number,
-        total_time: number,
-        today_time: number
+    customer_id: number,
+    customer_name: string,
+    project_id: number,
+    project_name: string,
+    total_time: number,
+    today_time: number
 }
 
 declare interface SuggestCustomerData {
@@ -64,9 +66,12 @@ export default class Entries extends Vue implements Updatable {
     }
 
     clickEntry(entry: EntryData) {
+
         this.selectedEntry = entry;
         this.selectedEntryTitle = entry.title;
         this.editEntryTitle = this.selectedEntry.title;
+        this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
+
     }
 
     protected async saveRecord(): Promise<void> {
@@ -153,8 +158,8 @@ export default class Entries extends Vue implements Updatable {
                     <tbody v-for="entry in this.entryData" :key="entry.title" @click="clickEntry(entry)">
                         <tr class='hover' :class="{selected: selectedEntryTitle === entry.title}">
                             <td>{{entry.title}}</td>
-                            <td>{{entry.customer_id}}</td>
-                            <td>{{entry.project_id}}</td>
+                            <td>{{entry.customer_name}}</td>
+                            <td>{{entry.project_name}}</td>
                             <td></td>
                             <td></td>
                             <td></td>
