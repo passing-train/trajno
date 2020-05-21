@@ -16,8 +16,19 @@ export default class Entryinputs {
         ipcMain.on('get-entry-data', async (event: Event ) => {
             event.returnValue = await this.getEntryData();
         });
-        ipcMain.on('update-entry', async (event: Event, oldTitle: string, newTitle: string ) => {
-            event.returnValue = await this.updateTitle(oldTitle, newTitle);
+
+        ipcMain.on('delete-entry', async (event: Event, entryText: string ) => {
+            event.returnValue = await this.deleteEntry(entryText);
+        });
+
+        ipcMain.on('update-entry', async (
+            event: Event,
+            oldTitle: string,
+            newTitle: string,
+            customerId: number,
+            projectId: number,
+        ) => {
+            event.returnValue = await this.updateRecord(oldTitle, newTitle, customerId, projectId);
         });
 
     }
@@ -27,8 +38,8 @@ export default class Entryinputs {
             let results: any = await Database.all(`
                 SELECT
                     entry_text as title,
-                    tempo_customer_id as customer,
-                    tempo_project_id as project,
+                    tempo_customer_id as customer_id,
+                    tempo_project_id as project_id,
                     tempo_customer_id as total_time,
                     tempo_customer_id as today_time
                 FROM tempo_entries
@@ -73,10 +84,12 @@ export default class Entryinputs {
         return true;
     }
 
-    public static async updateTitle(oldTitle: string, newTitle: string): Promise<boolean> {
+    public static async updateRecord(oldTitle: string, newTitle: string, customerId: number, projectId: number): Promise<boolean> {
 
         const sql = `
-            UPDATE tempo_entries SET entry_text="${newTitle}"
+            UPDATE tempo_entries SET
+            entry_text="${newTitle}",
+            tempo_customer_id = ${customerId}
             WHERE entry_text = "${oldTitle}"
         `;
 
@@ -86,4 +99,17 @@ export default class Entryinputs {
         await Database.run(sql)
         return true;
     }
+
+    public static async deleteEntry(entryText: string): Promise<boolean> {
+
+        const sql = `
+            DELETE from tempo_entries
+            WHERE entry_text = "${entryText}"
+        `;
+
+        await Database.run(sql);
+        return true;
+
+    }
+
 }

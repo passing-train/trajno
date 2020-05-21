@@ -1,3 +1,101 @@
+
+<script lang="ts">
+import {Component, Vue} from 'vue-property-decorator';
+import ipcRenderer from '@/components/ipc_renderer';
+import Updatable from "@/components/updatable";
+import {shell} from 'electron';
+
+//import { VueAutosuggest } from 'vue-autosuggest';
+const VueAutosuggest = require('vue-autosuggest');
+
+declare interface SuggestData {
+    id: number,
+    name: string
+}
+
+@Component({
+    components: VueAutosuggest
+})
+
+export default class Entryinput extends Vue implements Updatable {
+
+    entryText: string = 'start text';
+    query: string = "start text";
+    selected: string = "";
+
+    getSuggestDatas(queryText: string): SuggestData[] {
+        return ipcRenderer.sendSync('get-suggest-data', queryText);
+    }
+
+    mounted() {
+        ipcRenderer.on('wazzup', this.focusWazzup.bind(this))
+        this.focusWazzup();
+    }
+
+    focusWazzup(){
+        let theEntryText = (this.$refs.entryText as Vue);
+        let theInput = theEntryText.$el.querySelector("input")
+        if(theInput){
+            theInput.focus();
+            theInput.setSelectionRange(0, theInput.value.length);
+        }
+    }
+
+    onSelected(item:any){
+        this.selected = item.item;
+    }
+
+    clickHandler(item:any){
+
+    }
+
+    onInputChange(item:any){
+    }
+
+    getSuggestionValue(suggestion:any) {
+        return suggestion.item.name;
+    }
+
+    focusMe(e:any) {
+    }
+
+    get filteredOptions() {
+        let sdata = this.getSuggestDatas(this.query.toLowerCase());
+
+        return [
+            {
+                data: sdata
+            }
+        ];
+    }
+
+    update(): void {
+    }
+
+    protected isDevelopment(): boolean {
+        return ipcRenderer.sendSync('is-development');
+    }
+
+    protected getVersion(): string {
+        return ipcRenderer.sendSync('get-version');
+    }
+
+    protected getLastInput(): string {
+        return ipcRenderer.sendSync('get-last-entryinput');
+    }
+
+    protected save(): void {
+        let theEntryText = (this.$refs.entryText as Vue);
+        let theInput = theEntryText.$el.querySelector("input")
+        if(theInput){
+            ipcRenderer.send('set-entryinput', theInput.value);
+            ipcRenderer.send('hide-main');
+        }
+    }
+
+}
+</script>
+
 <template>
     <div id="entryinput">
         <div class="section">
@@ -43,126 +141,6 @@
         </div>
     </div>
 </template>
-
-<script lang="ts">
-import {Component, Vue} from 'vue-property-decorator';
-import ipcRenderer from '@/components/ipc_renderer';
-import Updatable from "@/components/updatable";
-import {shell} from 'electron';
-
-//import { VueAutosuggest } from 'vue-autosuggest';
-const VueAutosuggest = require('vue-autosuggest');
-
-declare interface SuggestData {
-    id: number,
-    name: string
-}
-
-@Component({
-    components: VueAutosuggest
-})
-
-export default class Entryinput extends Vue implements Updatable {
-
-    entryText: string = 'start text';
-    query: string = "start text";
-    selected: string = "";
-    suggestions = [
-        {
-            data: [
-                { id: 1, name: "Frodo"},
-                { id: 2, name: "Samwise"},
-                { id: 3, name: "Gandalf"},
-                { id: 4, name: "Aragorn"}
-            ]
-        }
-    ];
-
-    getSuggestDatas(queryText: string): SuggestData[] {
-        return ipcRenderer.sendSync('get-suggest-data', queryText);
-    }
-
-    mounted() {
-        ipcRenderer.on('wazzup', this.focusWazzup.bind(this))
-        this.focusWazzup();
-    }
-
-    focusWazzup(){
-        let theEntryText = (this.$refs.entryText as Vue);
-        let theInput = theEntryText.$el.querySelector("input")
-        if(theInput){
-            theInput.focus();
-            theInput.setSelectionRange(0, theInput.value.length);
-        }
-    }
-
-    onSelected(item:any){
-        this.selected = item.item;
-    }
-
-    clickHandler(item:any){
-
-    }
-
-    onInputChange(item:any){
-    }
-
-    getSuggestionValue(suggestion:any) {
-        return suggestion.item.name;
-    }
-
-    focusMe(e:any) {
-    }
-
-    get filteredOptions() {
-        let sdata = this.getSuggestDatas(this.query.toLowerCase());
-        //console.log(sdata) // FocusEvent
-
-        //let retdata =  [{ id: 1, name: "Hallo"}];
-
-        return [
-            {
-                data: sdata
-            }
-        ];
-
-        /*
-        return [
-            {
-                data: this.suggestions[0].data.filter(option => {
-                    return option.name.toLowerCase().indexOf(this.query.toLowerCase()) > -1;
-                })
-            }
-        ];
-        */
-    }
-
-    update(): void {
-    }
-
-    protected isDevelopment(): boolean {
-        return ipcRenderer.sendSync('is-development');
-    }
-
-    protected getVersion(): string {
-        return ipcRenderer.sendSync('get-version');
-    }
-
-    protected getLastInput(): string {
-        return ipcRenderer.sendSync('get-last-entryinput');
-    }
-
-    protected save(): void {
-        let theEntryText = (this.$refs.entryText as Vue);
-        let theInput = theEntryText.$el.querySelector("input")
-        if(theInput){
-            ipcRenderer.send('set-entryinput', theInput.value);
-            ipcRenderer.send('hide-main');
-        }
-    }
-
-}
-</script>
 
 <style>
 
