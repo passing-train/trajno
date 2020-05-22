@@ -42,6 +42,7 @@ export default class Entries extends Vue {
     selectedEntryText: string = "";
     editEntryText: string = "";
     selected: string = "";
+    extraMinutes: number = 0;
     selectedEntry: EntryData | null = null;
 
     //customerText: string = '';
@@ -87,6 +88,14 @@ export default class Entries extends Vue {
         this.editEntryText = this.selectedEntry.entry_text;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
+
+    }
+
+    protected async addMinutes(): Promise<void> {
+
+        await ipcRenderer.send('add-remove-minutes-to-entry', this.selectedEntryText, this.extraMinutes);
+        this.extraMinutes = 0;
+        this.entryData = this.getEntryData();
 
     }
 
@@ -219,12 +228,6 @@ export default class Entries extends Vue {
             </div>
 
             <div id="col2">
-                <div>
-                    <label>
-                        extra time
-                        <input type="text" size="4">
-                    </label>
-                </div>
 
                 <div>
                     <label>
@@ -247,6 +250,12 @@ export default class Entries extends Vue {
                 <div class="entryinputOption">
                     <button @click="saveRecord()">Save</button>
                     <button @click="deleteRecord()">Delete</button>
+                </div>
+                <div>
+                    <label>
+                        <button @click="addMinutes()">Add or remove minutes</button><br>
+                        <input type="text" size="4" v-model="extraMinutes">
+                    </label>
                 </div>
 
             </div>

@@ -41,6 +41,10 @@ export default class Entryinputs {
             event.returnValue = await this.updateRecord(oldText, newText, customerId, projectId);
         });
 
+        ipcMain.on('add-remove-minutes-to-entry', async (event: Event, entryText: string, minutes: number ) => {
+            event.returnValue = await this.add_or_remove_minutes_on_last_day(entryText,minutes);
+        });
+
         ipcMain.on('update-entry-flat', async (
             event: Event,
             entryId: number,
@@ -103,9 +107,6 @@ export default class Entryinputs {
 
         let entries: any = await Database.all(sql);
         await entries.forEach((entry:any)=>{
-            if(entry.entry_text =="Administratie"){
-                log.debug(entry);
-            }
 
             // RESET VARS
             work_break = false;
@@ -150,6 +151,55 @@ export default class Entryinputs {
 
         return total_secs;
     }
+
+    public static async add_or_remove_minutes_on_last_day(entryText:string, minutes:number){
+
+        log.debug(minutes);
+        let last_day_entry = await Database.one(`SELECT * from tempo_entries where entry_text = "${entryText}" ORDER BY created_at LIMIT 1`);
+        log.debug(last_day_entry);
+
+        let extra_time:number = last_day_entry.extra_time + (minutes * 60);
+
+        const sqllast:string = `
+            UPDATE tempo_entries SET
+            extra_time=${extra_time}
+            WHERE id = ${last_day_entry.id}`;
+
+        log.debug(`last update sql ${sqllast}`);
+        await Database.run(sqllast);
+    }
+
+    /*
+  def add_extra_time_last_day sender
+
+    if @addextratime_field.stringValue != @addextratime_field.stringValue.to_s.to_i.to_s and
+        @addextratime_field.stringValue != @addextratime_field.stringValue.to_s.to_f.to_s
+
+      alert = NSAlert.alloc.init
+      alert.setMessageText  "Can't add time"
+      alert.setInformativeText "Please enter the amount of minutes as a number. Add '-' to decrease time."
+      alert.addButtonWithTitle "Ok"
+      alert.runModal
+    else
+
+      @last_selected_row = @table_view.selectedRow
+      last_day_entry = Entry.where(:title).eq(@entries[@last_selected_row].title).sort_by('created_at').last
+      last_day_entry.extra_time = last_day_entry.extra_time + (@addextratime_field.stringValue.to_i * 60)
+
+      cdq.save
+      @table_view.reloadData
+
+      disable_edit
+      indexSet = NSIndexSet.indexSetWithIndex @last_selected_row
+      @table_view.selectRowIndexes(indexSet, byExtendingSelection:false)
+      self.window.makeFirstResponder @table_view
+
+    end
+
+    @addextratime_field.setStringValue ''
+  end
+     */
+
 
     public static async getEntryFlatData() {
         try {
