@@ -8,13 +8,12 @@ import Updatable from "@/components/updatable";
 const VueAutosuggest = require('vue-autosuggest');
 
 declare interface EntryData {
-    title: string,
+    entry_text: string,
     customer_id: number,
     customer_name: string,
     project_id: number,
     project_name: string,
-    total_time: number,
-    today_time: number
+    total_time: number
 }
 
 declare interface SuggestCustomerData {
@@ -40,8 +39,8 @@ declare interface ProjectID {
 export default class Entries extends Vue {
 
     entryData: EntryData[] = this.getEntryData();
-    selectedEntryTitle: string = "";
-    editEntryTitle: string = "";
+    selectedEntryText: string = "";
+    editEntryText: string = "";
     selected: string = "";
     selectedEntry: EntryData | null = null;
 
@@ -74,9 +73,9 @@ export default class Entries extends Vue {
         return ipcRenderer.sendSync('get-entry-data');
     }
 
-    getSelectedEntryTitle(): string {
+    getSelectedEntryText(): string {
         if(this.selectedEntry){
-            return this.selectedEntry.title;
+            return this.selectedEntry.entry_text;
         }
         return "";
     }
@@ -84,8 +83,8 @@ export default class Entries extends Vue {
     clickEntry(entry: EntryData) {
 
         this.selectedEntry = entry;
-        this.selectedEntryTitle = entry.title;
-        this.editEntryTitle = this.selectedEntry.title;
+        this.selectedEntryText = entry.entry_text;
+        this.editEntryText = this.selectedEntry.entry_text;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
 
@@ -113,7 +112,7 @@ export default class Entries extends Vue {
         }
 
 
-        await ipcRenderer.send('update-entry', this.selectedEntryTitle, this.editEntryTitle, cust_id, prod_id);
+        await ipcRenderer.send('update-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id);
         this.entryData = this.getEntryData();
     }
 
@@ -121,7 +120,7 @@ export default class Entries extends Vue {
     }
 
     protected async deleteRecord(): Promise<void> {
-        await ipcRenderer.send('delete-entry', this.selectedEntryTitle);
+        await ipcRenderer.send('delete-entry', this.selectedEntryText);
         this.entryData = this.getEntryData();
     }
 
@@ -159,7 +158,7 @@ export default class Entries extends Vue {
     <div id="entries">
         <div class="section">
             <div class="entryinputFlexRow">
-                <h3 class="entryinputTitle">Entries</h3>
+                <h3 class="entryinputText">Entries</h3>
             </div>
         </div>
 
@@ -176,13 +175,12 @@ export default class Entries extends Vue {
                             <th>Time Today</th>
                         </tr>
                     </thead>
-                    <tbody v-for="entry in this.entryData" :key="entry.title" @click="clickEntry(entry)">
-                        <tr class='hover' :class="{selected: selectedEntryTitle === entry.title}">
-                            <td>{{entry.title}}</td>
+                    <tbody v-for="entry in this.entryData" :key="entry.entry_text" @click="clickEntry(entry)">
+                        <tr class='hover' :class="{selected: selectedEntryText === entry.entry_text}">
+                            <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
-                            <td></td>
-                            <td></td>
+                            <td>{{entry.total_time}}</td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -195,7 +193,7 @@ export default class Entries extends Vue {
                 <div>
                     <label>
                         Entry
-                        <input type="text" v-model="editEntryTitle">
+                        <input type="text" v-model="editEntryText">
                     </label>
                 </div>
                 <div>

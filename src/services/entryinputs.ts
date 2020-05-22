@@ -6,7 +6,7 @@ export default class Entryinputs {
 
     private static lastEntryId: number = -1;
     private static lastEntryCreatedAt: number = -1;
-    private static lastEntryTitle: string = "";
+    private static lastEntryText: string = "";
 
     public static async init() {
         ipcMain.on('set-entryinput', async (event: Event, entryText: string) => {
@@ -33,49 +33,122 @@ export default class Entryinputs {
 
         ipcMain.on('update-entry', async (
             event: Event,
-            oldTitle: string,
-            newTitle: string,
+            oldText: string,
+            newText: string,
             customerId: number,
             projectId: number,
         ) => {
-            event.returnValue = await this.updateRecord(oldTitle, newTitle, customerId, projectId);
+            event.returnValue = await this.updateRecord(oldText, newText, customerId, projectId);
         });
 
         ipcMain.on('update-entry-flat', async (
             event: Event,
             entryId: number,
-            newTitle: string,
+            newText: string,
             customerId: number,
             projectId: number,
         ) => {
-            event.returnValue = await this.updateRecordFlat(entryId, newTitle, customerId, projectId);
+            event.returnValue = await this.updateRecordFlat(entryId, newText, customerId, projectId);
         });
 
     }
 
+    public static async asyncForEach(array:any, callback:any) {
+        for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
+        }
+    }
+
     public static async getEntryData() {
-        try {
-            let results: any = await Database.all(`
+
+        let resultsplus:any[] = [];
+        let results: any = await Database.all(`
                 SELECT
-                   e.entry_text as title,
+                   e.entry_text as entry_text,
                    e.tempo_customer_id as customer_id,
                    c.name as customer_name,
                    e.tempo_project_id as project_id,
-                   p.name as project_name,
-                   e.tempo_customer_id as total_time,
-                   e.tempo_customer_id as today_time
+                   p.name as project_name
                 FROM tempo_entries e
                 LEFT JOIN tempo_customers c
                     ON c.id = e.tempo_customer_id
                 LEFT JOIN tempo_projects p
                     ON p.id = e.tempo_project_id
-                GROUP BY title
+                GROUP BY entry_text
                 `);
 
-            return results;
-        } catch (e) {
-            log.error(e);
-        }
+        await this.asyncForEach(results, (async (row:any) => {
+            row.total_time = await this.total_time_in_seconds(row.entry_text);
+            resultsplus.push(row);
+        }));
+
+        return resultsplus;
+    }
+
+    private static async total_time_in_seconds(entryText: string): Promise<number>{
+
+        let total_secs:number = 0;
+        let last_entry:any = null;
+        let block_total:number = 0;
+        let work_break:boolean = false;
+        let row: object;
+        let rows: any[] = [];
+
+        //MINUTEN?
+        // TODO CONFIGURABLE
+        let interval: number = 20;//NSUserDefaults.standardUserDefaults.integerForKey('AskInterval')
+        let extra_marge: number = 30;
+
+        let sql:string = `SELECT * FROM tempo_entries WHERE entry_text ="${entryText}"`;
+
+        let entries: any = await Database.all(sql);
+        await entries.forEach((entry:any)=>{
+            if(entry.entry_text =="Administratie"){
+                log.debug(entry);
+            }
+
+            // RESET VARS
+            work_break = false;
+
+            if( last_entry === null ||
+                entry.entry_text != last_entry.entry_text ||
+                last_entry.last_in_block === 1 )
+            {
+                block_total = 0;
+            }
+
+            // PREVENT TO LONG BLOCKS, WHEN TOO LONG TREAT AS EXTRA BLOCK
+            // TODO CONFIGURABLE
+            if (entry.time_delta > (interval + 5 + extra_marge) * 60 ){
+                block_total += (interval + 5) * 60 + extra_marge;
+                work_break = true;
+            }
+            else {
+                block_total += entry.time_delta;
+            }
+
+            block_total += entry.extra_time;
+
+            // DISPLAY AS NEW DAY OR LAST BLOCK (??)
+            if(
+                entry.last_in_block === 1 ||
+                work_break ){
+
+                row = {
+                    created_at: entry.created_at,
+                    block_total_secs: block_total
+                }
+
+                rows.push( row );
+            }
+            last_entry = entry;
+        });
+
+        rows.forEach((r:any)=>{
+            total_secs = total_secs + r.block_total_secs;
+        })
+
+        return total_secs;
     }
 
     public static async getEntryFlatData() {
@@ -83,7 +156,7 @@ export default class Entryinputs {
             let results: any = await Database.all(`
                 SELECT
                    e.id as id,
-                   e.entry_text as title,
+                   e.entry_text as entry_text,
                    e.tempo_customer_id as customer_id,
                    c.name as customer_name,
                    e.tempo_project_id as project_id,
@@ -103,7 +176,6 @@ export default class Entryinputs {
             log.error(e);
         }
     }
-
 
     public static async getSuggestData(queryText: string) {
         try {
@@ -129,7 +201,7 @@ export default class Entryinputs {
         // Store timedelta into last record
         if(this.lastEntryId > 0){
 
-            if( entryText == this.lastEntryTitle ){
+            if( entryText == this.lastEntryText ){
                 last_in_block = 0;
             }
 
@@ -170,33 +242,33 @@ export default class Entryinputs {
                 WHERE id = ${this.lastEntryId} `);
 
         this.lastEntryCreatedAt = lastRecord.created_at;
-        this.lastEntryTitle = lastRecord.entry_text
+        this.lastEntryText = lastRecord.entry_text
 
         log.debug(`lastId: ${this.lastEntryId}`);
         log.debug(`lastEntryCreatedAt: ${this.lastEntryCreatedAt}`);
-        log.debug(`lastEntryTitle: ${this.lastEntryTitle}`);
+        log.debug(`lastEntryText: ${this.lastEntryText}`);
 
         return true;
     }
 
-    public static async updateRecord(oldTitle: string, newTitle: string, customerId: number, projectId: number): Promise<boolean> {
+    public static async updateRecord(oldText: string, newText: string, customerId: number, projectId: number): Promise<boolean> {
 
         const sql = `
             UPDATE tempo_entries SET
-            entry_text="${newTitle}",
+            entry_text="${newText}",
             tempo_customer_id = ${customerId},
             tempo_project_id = ${projectId}
-            WHERE entry_text = "${oldTitle}"
+            WHERE entry_text = "${oldText}"
         `;
 
         await Database.run(sql)
         return true;
     }
-    public static async updateRecordFlat(entryId: number, newTitle: string, customerId: number, projectId: number): Promise<boolean> {
+    public static async updateRecordFlat(entryId: number, newText: string, customerId: number, projectId: number): Promise<boolean> {
 
         const sql = `
             UPDATE tempo_entries SET
-            entry_text="${newTitle}",
+            entry_text="${newText}",
             tempo_customer_id = ${customerId},
             tempo_project_id = ${projectId}
             WHERE id = "${entryId}"

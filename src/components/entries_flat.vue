@@ -10,7 +10,7 @@ const VueAutosuggest = require('vue-autosuggest');
 
 declare interface EntryFlatData {
     id: number,
-    title: string,
+    entry_text: string,
     customer_id: number,
     customer_name: string,
     project_id: number,
@@ -44,7 +44,7 @@ export default class EntriesFlat extends Vue implements Updatable {
 
     entryFlatData: EntryFlatData[] = this.getEntryFlatData();
     selectedEntryId: number = 0;
-    editEntryTitle: string = "";
+    editEntryText: string = "";
     selected: string = "";
     selectedEntry: EntryFlatData | null = null;
 
@@ -79,9 +79,9 @@ export default class EntriesFlat extends Vue implements Updatable {
         return ipcRenderer.sendSync('get-entry-flat-data');
     }
 
-    getSelectedEntryTitle(): string {
+    getSelectedEntryText(): string {
         if(this.selectedEntry){
-            return this.selectedEntry.title;
+            return this.selectedEntry.entry_text;
         }
         return "";
     }
@@ -90,7 +90,7 @@ export default class EntriesFlat extends Vue implements Updatable {
 
         this.selectedEntry = entry;
         this.selectedEntryId = entry.id;
-        this.editEntryTitle = this.selectedEntry.title;
+        this.editEntryText = this.selectedEntry.entry_text;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
 
@@ -118,7 +118,7 @@ export default class EntriesFlat extends Vue implements Updatable {
         }
 
 
-        await ipcRenderer.send('update-entry-flat', this.selectedEntryId, this.editEntryTitle, cust_id, prod_id);
+        await ipcRenderer.send('update-entry-flat', this.selectedEntryId, this.editEntryText, cust_id, prod_id);
         this.entryFlatData = this.getEntryFlatData();
     }
 
@@ -165,7 +165,7 @@ export default class EntriesFlat extends Vue implements Updatable {
     <div id="entries">
         <div class="section">
             <div class="entryinputFlexRow">
-                <h3 class="entryinputTitle">Entries Flat</h3>
+                <h3 class="entryinputText">Entries Flat</h3>
             </div>
         </div>
 
@@ -185,7 +185,7 @@ export default class EntriesFlat extends Vue implements Updatable {
                     </thead>
                     <tbody v-for="entry in this.entryFlatData" :key="entry.id" @click="clickEntry(entry)">
                         <tr class='hover' :class="{selected: selectedEntryId === entry.id}">
-                            <td>{{entry.title}}&nbsp;</td>
+                            <td>{{entry.entry_text}};</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
                             <td>{{timeAsString(entry.created_at)}}</td>
@@ -202,7 +202,7 @@ export default class EntriesFlat extends Vue implements Updatable {
                 <div>
                     <label>
                         Entry
-                        <input type="text" v-model="editEntryTitle">
+                        <input type="text" v-model="editEntryText">
                     </label>
                 </div>
                 <div>
