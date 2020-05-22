@@ -22,7 +22,7 @@ export default `
         project_external_code     TEXT,
         tempo_customer_id         INTEGER,
         tempo_project_id          INTEGER,
-        entry_text                VARCHAR
+        entry_text                VARCHAR,
         last_in_block             INTEGER,
         not_in_export             INTEGER,
         sticky                    INTEGER,

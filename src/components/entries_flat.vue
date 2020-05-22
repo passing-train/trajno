@@ -4,17 +4,20 @@ import {Component, Vue} from 'vue-property-decorator';
 import ipcRenderer from '@/components/ipc_renderer';
 import ContentPage from "@/components/contentPage.vue";
 import Updatable from "@/components/updatable";
+import {formatSeconds, getDateTimeStringFromStamp} from "@/util/time_util";
 
 const VueAutosuggest = require('vue-autosuggest');
 
-declare interface EntryData {
+declare interface EntryFlatData {
+    id: number,
     title: string,
     customer_id: number,
     customer_name: string,
     project_id: number,
     project_name: string,
-    total_time: number,
-    today_time: number
+    created_at: number,
+    time_delta: number,
+    last_in_block: number
 }
 
 declare interface SuggestCustomerData {
@@ -37,13 +40,13 @@ declare interface ProjectID {
     components: VueAutosuggest
 })
 
-export default class Entries extends Vue {
+export default class EntriesFlat extends Vue implements Updatable {
 
-    entryData: EntryData[] = this.getEntryData();
-    selectedEntryTitle: string = "";
+    entryFlatData: EntryFlatData[] = this.getEntryFlatData();
+    selectedEntryId: number = 0;
     editEntryTitle: string = "";
     selected: string = "";
-    selectedEntry: EntryData | null = null;
+    selectedEntry: EntryFlatData | null = null;
 
     //customerText: string = '';
     queryCustomer: string = "";
@@ -66,12 +69,14 @@ export default class Entries extends Vue {
     }
 
     mounted() {
-        this.entryData = this.getEntryData();
+        this.entryFlatData = this.getEntryFlatData();
         //document.addEventListener("keyup", (event) => this.nextItem(event));
     }
+    update(): void {
+    }
 
-    getEntryData(): EntryData[] {
-        return ipcRenderer.sendSync('get-entry-data');
+    getEntryFlatData(): EntryFlatData[] {
+        return ipcRenderer.sendSync('get-entry-flat-data');
     }
 
     getSelectedEntryTitle(): string {
@@ -81,10 +86,10 @@ export default class Entries extends Vue {
         return "";
     }
 
-    clickEntry(entry: EntryData) {
+    clickEntry(entry: EntryFlatData) {
 
         this.selectedEntry = entry;
-        this.selectedEntryTitle = entry.title;
+        this.selectedEntryId = entry.id;
         this.editEntryTitle = this.selectedEntry.title;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
@@ -113,16 +118,13 @@ export default class Entries extends Vue {
         }
 
 
-        await ipcRenderer.send('update-entry', this.selectedEntryTitle, this.editEntryTitle, cust_id, prod_id);
-        this.entryData = this.getEntryData();
-    }
-
-    update(): void {
+        await ipcRenderer.send('update-entry-flat', this.selectedEntryId, this.editEntryTitle, cust_id, prod_id);
+        this.entryFlatData = this.getEntryFlatData();
     }
 
     protected async deleteRecord(): Promise<void> {
-        await ipcRenderer.send('delete-entry', this.selectedEntryTitle);
-        this.entryData = this.getEntryData();
+        await ipcRenderer.send('delete-entry-flat', this.selectedEntryId);
+        this.entryFlatData = this.getEntryFlatData();
     }
 
     onSelected(item:any){
@@ -133,6 +135,10 @@ export default class Entries extends Vue {
         return suggestion.item.name;
     }
 
+    timeAsString(time: number): string {
+//        return formatSeconds(time);
+        return getDateTimeStringFromStamp(time);
+    }
 
     get filteredCustomerOptions() {
         let sdata = this.getSuggestCustomerData(this.queryCustomer.toLowerCase());
@@ -159,7 +165,7 @@ export default class Entries extends Vue {
     <div id="entries">
         <div class="section">
             <div class="entryinputFlexRow">
-                <h3 class="entryinputTitle">Entries</h3>
+                <h3 class="entryinputTitle">Entries Flat</h3>
             </div>
         </div>
 
@@ -172,18 +178,19 @@ export default class Entries extends Vue {
                             <th>Entry</th>
                             <th>Customer</th>
                             <th>Project</th>
-                            <th>Total Time</th>
-                            <th>Time Today</th>
+                            <th>Created At</th>
+                            <th>Time Delta</th>
+                            <th>Last in Block</th>
                         </tr>
                     </thead>
-                    <tbody v-for="entry in this.entryData" :key="entry.title" @click="clickEntry(entry)">
-                        <tr class='hover' :class="{selected: selectedEntryTitle === entry.title}">
-                            <td>{{entry.title}}</td>
+                    <tbody v-for="entry in this.entryFlatData" :key="entry.id" @click="clickEntry(entry)">
+                        <tr class='hover' :class="{selected: selectedEntryId === entry.id}">
+                            <td>{{entry.title}}&nbsp;</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{{timeAsString(entry.created_at)}}</td>
+                            <td>{{entry.time_delta}}</td>
+                            <td>{{entry.last_in_block}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -221,12 +228,6 @@ export default class Entries extends Vue {
             </div>
 
             <div id="col2">
-                <div>
-                    <label>
-                        extra time
-                        <input type="text" size="4">
-                    </label>
-                </div>
 
                 <div>
                     <label>
@@ -275,6 +276,9 @@ export default class Entries extends Vue {
     overflow: auto;
     display: grid;
     grid-template-rows: 1fr;
+}
+tr{
+    border-top: solid 1px #ccc;
 }
 
 #editSection {

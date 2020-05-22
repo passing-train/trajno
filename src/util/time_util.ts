@@ -6,6 +6,19 @@ export function getNextDate(date: Date): Date {
     return new Date(date.getTime() + 24 * 60 * 60 * 1000);
 }
 
+export function getDateTimeStringFromStamp(unix_timestamp: number): string {
+    let date: Date = new Date(unix_timestamp * 1000);
+    let day: string = "" + date.getDate();
+    let month: string = "" + (date.getMonth()+1);
+    let hours: string = "" + date.getHours();
+    let minutes: string = "0" + date.getMinutes();
+    let seconds: string = "0" + date.getSeconds();
+
+    let formattedTime: string = day+ '/' + month +' '+hours + ':' + minutes.substr(-2);
+
+    return formattedTime;
+}
+
 export function getToday(): Date {
     let date: Date = new Date();
     date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));

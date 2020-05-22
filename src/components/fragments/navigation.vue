@@ -1,6 +1,6 @@
 <template>
     <div class="navigation">
-        <div v-for="item in items" v-bind:key="item.icon">
+        <div v-for="item in items" v-bind:key="item.key">
             <navigation-item :icon=item.icon
                              :activePage=page
                              :iconAlt=item.iconAlt

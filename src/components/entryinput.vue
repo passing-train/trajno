@@ -19,6 +19,22 @@ declare interface SuggestData {
 
 export default class Entryinput extends Vue implements Updatable {
 
+    /*
+  PROMPTS = ["What\'re you working on?",
+             "What\'cha up to?",
+             "What\'s going on?",
+             "How goes it?",
+             "What\'s the plan?",
+             "Where are you at?",
+             "What\'s next?",
+             "What\'ve you been up to?",
+             "Status:",
+             "Anything I can help with?",
+             "What\'s happening?",
+             "What\'s on your mind?"]
+             */
+
+
     entryText: string = "";
     query: string = "";
     selected: string = "";

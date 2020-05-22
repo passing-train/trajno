@@ -11,6 +11,7 @@
     import Navigation from '@/components/fragments/navigation.vue';
     import Entryinput from "@/components/entryinput.vue";
     import Entries from "@/components/entries.vue";
+    import EntriesFlat from "@/components/entries_flat.vue";
     import Customers from "@/components/customers.vue";
     import Projects from "@/components/projects.vue";
     import Dashboard from "@/components/dashboard.vue";
@@ -23,6 +24,7 @@
     }
 
     type NavigationItem = {
+        key: string,
         icon: string,
         iconAlt: string,
         page: PageComponent
@@ -36,16 +38,17 @@
     })
     export default class App extends Vue {
     //    page: PageComponent = Entryinput;
-        page: PageComponent = Entries;
+        page: PageComponent = EntriesFlat;
 
         navigationItems: NavigationItem[] = [
-            {icon: 'input', iconAlt: 'input' ,page: Entryinput},
-            {icon: 'list', iconAlt: 'list', page: Entries},
-            {icon: 'face', iconAlt: 'face', page: Customers},
-            {icon: 'business_center', iconAlt: 'business_center', page: Projects},
-            {icon: 'show_chart', iconAlt: 'dashboard', page: Dashboard},
-            {icon: 'assignment', iconAlt: 'processes', page: Processes},
-            {icon: 'settings', iconAlt: 'settings', page: Settings}
+            {key: '1', icon: 'input', iconAlt: 'input' ,page: Entryinput},
+            {key: '2', icon: 'list', iconAlt: 'list', page: Entries},
+            {key: '3', icon: 'face', iconAlt: 'face', page: Customers},
+            {key: '4', icon: 'business_center', iconAlt: 'business_center', page: Projects},
+            {key: '5', icon: 'show_chart', iconAlt: 'dashboard', page: Dashboard},
+            {key: '6', icon: 'assignment', iconAlt: 'processes', page: Processes},
+            {key: '7', icon: 'settings', iconAlt: 'settings', page: Settings},
+            {key: '8', icon: 'list', iconAlt: 'list', page: EntriesFlat},
         ];
 
         switchPage(newPage: PageComponent) {
