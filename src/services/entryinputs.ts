@@ -167,39 +167,8 @@ export default class Entryinputs {
 
         log.debug(`last update sql ${sqllast}`);
         await Database.run(sqllast);
+        return true;
     }
-
-    /*
-  def add_extra_time_last_day sender
-
-    if @addextratime_field.stringValue != @addextratime_field.stringValue.to_s.to_i.to_s and
-        @addextratime_field.stringValue != @addextratime_field.stringValue.to_s.to_f.to_s
-
-      alert = NSAlert.alloc.init
-      alert.setMessageText  "Can't add time"
-      alert.setInformativeText "Please enter the amount of minutes as a number. Add '-' to decrease time."
-      alert.addButtonWithTitle "Ok"
-      alert.runModal
-    else
-
-      @last_selected_row = @table_view.selectedRow
-      last_day_entry = Entry.where(:title).eq(@entries[@last_selected_row].title).sort_by('created_at').last
-      last_day_entry.extra_time = last_day_entry.extra_time + (@addextratime_field.stringValue.to_i * 60)
-
-      cdq.save
-      @table_view.reloadData
-
-      disable_edit
-      indexSet = NSIndexSet.indexSetWithIndex @last_selected_row
-      @table_view.selectRowIndexes(indexSet, byExtendingSelection:false)
-      self.window.makeFirstResponder @table_view
-
-    end
-
-    @addextratime_field.setStringValue ''
-  end
-     */
-
 
     public static async getEntryFlatData() {
         try {

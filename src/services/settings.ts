@@ -18,6 +18,7 @@ export default class Settings {
 
         await this.initSettingNum('heartbeatPollTime', 10);
         await this.initSettingNum('heartbeatIdleTime', 300);
+        await this.initSettingNum('questionIntervalMinutes', 30);
     }
 
     public static async getSetting(key: string): Promise<string | null> {

@@ -225,7 +225,7 @@ async function createWindow() {
 
     ipcMain.on('hide-main', async (event: any) => {
 
-      hideWindowUntillNextQuestion();
+        hideWindowUntillNextQuestion();
 
     });
 
@@ -250,8 +250,8 @@ async function createWindow() {
     });
 
     ipcMain.on('convert', () => {
-       let converter = new DatabaseConversionService();
-       converter.convert();
+        let converter = new DatabaseConversionService();
+        converter.convert();
     });
 
     tray = new Tray(iconUrl); // TODO: Tray icon is still broken with snap
@@ -352,19 +352,21 @@ function resume() {
     tray.setImage(iconUrl);
 }
 
-function hideWindowUntillNextQuestion(){
-  let minutes = 0.1;
+async function hideWindowUntillNextQuestion(){
+//    let minutes = 0.1;
+    let minutes:number = await Settings.getSetting('questionIntervalMinutes');
+    log.debug(minutes);
 
-  win.hide();
+    win.hide();
 
     tray.setImage(iconUrl);
-  setTimeout(function(){
-    showWindowForNextQuestion();
-  }, (1000 * 60 * minutes));
+    setTimeout(function(){
+        showWindowForNextQuestion();
+    }, (1000 * 60 * minutes));
 }
 
 function showWindowForNextQuestion(){
-  tray.setImage(pauseIconUrl);
+    tray.setImage(pauseIconUrl);
     win.show();
     win.webContents.send('wazzup', 'whoooooooh!')
 }

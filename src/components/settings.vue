@@ -17,19 +17,28 @@
                     </div>
                     <div class="settingsOption">
                         <label>
-                            Poll time in seconds
+                            Process polling interval in seconds
                             <input type="number" min="1" max="300" @change="changePollTime"
                                    :value="this.getSetting('heartbeatPollTime')">
                         </label>
                     </div>
                     <div class="settingsOption">
                         <label>
-                            Idle time in seconds
+                            Process idle time in seconds
                             <input type="number" min="10" max="3600" @change="changeIdleTime"
                                    :value="this.getSetting('heartbeatIdleTime')">
                         </label>
                     </div>
-                    <div class="settingsOption" v-if="isDevelopment">
+
+                    <div class="settingsOption">
+                        <label>
+                            Question Interval in minutes
+                            <input type="number" min="1" max="600" @change="changeQuestionInterval"
+                                   :value="this.getSetting('questionIntervalMinutes')">
+                        </label>
+                    </div>
+
+                    <div class="settingsOption" style="display:none;" v-if="isDevelopment">
                         <button @click="convert">Convert</button>
                     </div>
 
@@ -63,6 +72,10 @@
 
         protected changeIdleTime(event: any) {
             this.setSetting('heartbeatIdleTime', event.target.value);
+        }
+
+        protected changeQuestionInterval(event: any) {
+            this.setSetting('questionIntervalMinutes', event.target.value);
         }
 
         private hasAutoStart(): boolean {

@@ -4,6 +4,7 @@ import {Component, Vue} from 'vue-property-decorator';
 import ipcRenderer from '@/components/ipc_renderer';
 import ContentPage from "@/components/contentPage.vue";
 import Updatable from "@/components/updatable";
+import {formatMinutes} from "@/util/time_util";
 
 const VueAutosuggest = require('vue-autosuggest');
 
@@ -90,13 +91,14 @@ export default class Entries extends Vue {
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
 
     }
+    protected formatMinutes(seconds:number):string {
+        return formatMinutes(seconds);
+    }
 
     protected async addMinutes(): Promise<void> {
-
         await ipcRenderer.send('add-remove-minutes-to-entry', this.selectedEntryText, this.extraMinutes);
         this.extraMinutes = 0;
         this.entryData = this.getEntryData();
-
     }
 
     protected async saveRecord(): Promise<void> {
@@ -189,7 +191,7 @@ export default class Entries extends Vue {
                             <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
-                            <td>{{entry.total_time}}</td>
+                            <td>{{formatMinutes(entry.total_time)}}</td>
                             <td></td>
                         </tr>
                     </tbody>

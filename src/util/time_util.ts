@@ -30,6 +30,23 @@ export function getDayLength(): number {
     return 24 * 60 * 60;
 }
 
+export function formatMinutes(totalSeconds: number): string {
+    let hours = Math.floor(totalSeconds / 60 / 60);
+    let minutes = Math.floor((totalSeconds - hours * 60 * 60) / 60);
+    let seconds = totalSeconds - hours * 60 * 60 - minutes * 60;
+
+    return `${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2, "0")}`
+
+    /*
+    if (hours > 0) {
+    } else if (minutes > 0) {
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    } else {
+        return `00:${seconds.toString().padStart(2, "0")}`
+    }
+    */
+}
+
 export function formatSeconds(totalSeconds: number): string {
     let hours = Math.floor(totalSeconds / 60 / 60);
     let minutes = Math.floor((totalSeconds - hours * 60 * 60) / 60);
