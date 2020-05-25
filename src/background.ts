@@ -26,6 +26,7 @@ let db = new Database();
 let tray: Tray;
 let heartbeat: Heartbeat;
 let autoLauncher: AutoLaunch;
+let timerQuestion: any;
 
 let iconUrl: string;
 let pauseIconUrl: string;
@@ -360,7 +361,9 @@ async function hideWindowUntillNextQuestion(){
     win.hide();
 
     tray.setImage(iconUrl);
-    setTimeout(function(){
+
+    clearTimeout(timerQuestion);
+    timerQuestion = setTimeout(function(){
         showWindowForNextQuestion();
     }, (1000 * 60 * minutes));
 }
