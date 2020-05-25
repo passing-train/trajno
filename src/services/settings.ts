@@ -74,4 +74,14 @@ export default class Settings {
     public static getIdleTime(): number {
         return Number.parseInt(Settings.settings['heartbeatIdleTime']);
     }
+
+    public static async getIntSetting(key:string): Promise<number> {
+        let setting = await this.getSetting(key);
+        if(setting){
+            return Number.parseInt(setting);
+        }
+        return -1;
+
+    }
+
 }

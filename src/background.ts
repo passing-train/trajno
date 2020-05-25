@@ -354,7 +354,7 @@ function resume() {
 
 async function hideWindowUntillNextQuestion(){
 //    let minutes = 0.1;
-    let minutes:number = await Settings.getSetting('questionIntervalMinutes');
+    let minutes:number = await Settings.getIntSetting('questionIntervalMinutes');
     log.debug(minutes);
 
     win.hide();

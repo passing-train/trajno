@@ -1,6 +1,7 @@
 import Database from "@/services/database";
-import {ipcMain} from 'electron'
+//import {ipcMain} from 'electron'
 import log from 'electron-log'
+const ipcMain = require('electron').ipcMain;
 
 export default class Entryinputs {
 
@@ -9,6 +10,7 @@ export default class Entryinputs {
     private static lastEntryText: string = "";
 
     public static async init() {
+
         ipcMain.on('set-entryinput', async (event: Event, entryText: string) => {
             event.returnValue = await Entryinputs.newEntry(entryText);
         });
@@ -19,6 +21,7 @@ export default class Entryinputs {
 
         ipcMain.on('get-entry-data', async (event: Event ) => {
             event.returnValue = await this.getEntryData();
+            //event.u = await this.getEntryData();
         });
         ipcMain.on('get-entry-flat-data', async (event: Event ) => {
             event.returnValue = await this.getEntryFlatData();
@@ -66,6 +69,7 @@ export default class Entryinputs {
     public static async getEntryData() {
 
         let resultsplus:any[] = [];
+        let results2: any;
         let results: any = await Database.all(`
                 SELECT
                    e.entry_text as entry_text,
@@ -86,7 +90,12 @@ export default class Entryinputs {
             resultsplus.push(row);
         }));
 
-        return resultsplus;
+        results2 = resultsplus;
+        return results2;
+    }
+
+    public static async enRichResults(results:any){
+
     }
 
     private static async total_time_in_seconds(entryText: string): Promise<number>{

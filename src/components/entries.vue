@@ -122,7 +122,6 @@ export default class Entries extends Vue {
             prod_id = projectId.id;
         }
 
-
         await ipcRenderer.send('update-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id);
         this.entryData = this.getEntryData();
     }
