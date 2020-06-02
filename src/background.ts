@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, Menu, protocol, Tray} from 'electron'
+import {app, dialog, BrowserWindow, ipcMain, Menu, protocol, Tray} from 'electron'
 import {createProtocol, installVueDevtools} from 'vue-cli-plugin-electron-builder/lib'
 import Database from "@/services/database";
 import Timeline from "@/services/timeline";
@@ -12,6 +12,7 @@ import path from 'path';
 import log from 'electron-log'
 import Settings from "@/services/settings";
 import Entryinputs from "@/services/entryinputs";
+import Exporter from "@/services/exporter";
 import Customers from "@/services/customers";
 import Projects from "@/services/projects";
 import {scheduleJob} from 'node-schedule'
@@ -42,6 +43,7 @@ let processGraph = new ProcessGraph();
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: {secure: true, standard: true}}]);
 
 // process.env.TMPDIR = `$XDG_RUNTIME_DIR`;
+
 
 let menuItems = [
     {
@@ -192,7 +194,7 @@ async function createWindow() {
 
 
     if (!isDevelopment) {
-        win.setMenuBarVisibility(false);
+        //win.setMenuBarVisibility(false);
 
         // TODO: Make production logging level configurable
         log.transports.file.level = 'info';
@@ -323,6 +325,7 @@ if (!lock && !isDevelopment) {
                 log.error('Vue Devtools failed to install:', e.toString())
             }
         }
+        createMainMenu();
         await createWindow();
     });
 }
@@ -373,3 +376,72 @@ function showWindowForNextQuestion(){
     win.show();
     win.webContents.send('wazzup', 'whoooooooh!')
 }
+
+async function exportTotalsForExact(){
+
+    let options = {
+        //Placeholder 1
+        title: "Export for Exact Online",
+
+        buttonLabel : "Export",
+        defaultPath: '~/Desktop/export-totals.csv',
+
+        filters :[
+            {name: 'All Files', extensions: ['*']}
+        ]
+    }
+
+    let filename = await dialog.showSaveDialog(win, options)
+    if(!filename.canceled){
+        let fpath = filename.filePath;
+        if(fpath != undefined){
+            log.debug(await Entryinputs.interpret_day_totals_exact());
+            //
+//            Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
+        }
+    }
+}
+
+function createMainMenu(){
+
+    const isMac:boolean = process.platform === 'darwin'
+
+    const template:Electron.MenuItemConstructorOptions[] = [
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'Export totals for Exact',
+                    click: () => {
+                        exportTotalsForExact();
+                    }
+                },
+                {
+                    label: 'Flush all entries',
+                    click: async () => {
+                        log.info("Not yet Implemented");
+                    }
+                }
+            ]
+        },
+        { role: 'editMenu' },
+        { role: 'viewMenu' },
+        { role: 'windowMenu' },
+        {
+            role: 'help',
+            submenu: [
+                {
+                    label: 'Learn More',
+                    click: async () => {
+                        const { shell } = require('electron')
+                        await shell.openExternal('https://electronjs.org')
+                    }
+                }
+            ]
+        }
+    ]
+
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+}
+

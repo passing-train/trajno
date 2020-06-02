@@ -19,6 +19,17 @@ export function getDateTimeStringFromStamp(unix_timestamp: number): string {
     return formattedTime;
 }
 
+export function getDateStringFromStamp(unix_timestamp: number): string {
+    let date: Date = new Date(unix_timestamp * 1000);
+    let day: string = "" + date.getDate();
+    let year: string = "" + date.getFullYear();
+    let month: string = "" + (date.getMonth()+1);
+
+    let formattedTime: string = day+ '/' + month+'/'+year;
+
+    return formattedTime;
+}
+
 export function getToday(): Date {
     let date: Date = new Date();
     date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));

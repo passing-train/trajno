@@ -1,6 +1,6 @@
 import Database from "@/services/database";
-//import {ipcMain} from 'electron'
 import log from 'electron-log'
+import {formatMinutes, getDateStringFromStamp} from "@/util/time_util";
 const ipcMain = require('electron').ipcMain;
 
 export default class Entryinputs {
@@ -60,43 +60,78 @@ export default class Entryinputs {
 
     }
 
+
+
     public static async asyncForEach(array:any, callback:any) {
         for (let index = 0; index < array.length; index++) {
             await callback(array[index], index, array);
         }
     }
 
-    public static async getEntryData() {
+    /*
+    private static async total_time_in_seconds(entryText: string): Promise<number>{
 
-        let resultsplus:any[] = [];
-        let results2: any;
-        let results: any = await Database.all(`
-                SELECT
-                   e.entry_text as entry_text,
-                   e.tempo_customer_id as customer_id,
-                   c.name as customer_name,
-                   e.tempo_project_id as project_id,
-                   p.name as project_name
-                FROM tempo_entries e
-                LEFT JOIN tempo_customers c
-                    ON c.id = e.tempo_customer_id
-                LEFT JOIN tempo_projects p
-                    ON p.id = e.tempo_project_id
-                GROUP BY entry_text
-                `);
+        let total_secs:number = 0;
+        let last_entry:any = null;
+        let block_total:number = 0;
+        let work_break:boolean = false;
+        let row: object;
+        let rows: any[] = [];
 
-        await this.asyncForEach(results, (async (row:any) => {
-            row.total_time = await this.total_time_in_seconds(row.entry_text);
-            resultsplus.push(row);
-        }));
+        //MINUTEN?
+        // TODO CONFIGURABLE
+        let interval: number = 20;//NSUserDefaults.standardUserDefaults.integerForKey('AskInterval')
+        let extra_marge: number = 30;
 
-        results2 = resultsplus;
-        return results2;
+        let sql:string = `SELECT * FROM tempo_entries WHERE entry_text ="${entryText}"`;
+
+        let entries: any = await Database.all(sql);
+        await entries.forEach((entry:any)=>{
+
+            // RESET VARS
+            work_break = false;
+
+            if( last_entry === null ||
+                entry.entry_text != last_entry.entry_text ||
+                last_entry.last_in_block === 1 )
+            {
+                block_total = 0;
+            }
+
+            // PREVENT TO LONG BLOCKS, WHEN TOO LONG TREAT AS EXTRA BLOCK
+            // TODO CONFIGURABLE
+            if (entry.time_delta > (interval + 5 + extra_marge) * 60 ){
+                block_total += (interval + 5) * 60 + extra_marge;
+                work_break = true;
+            }
+            else {
+                block_total += entry.time_delta;
+            }
+
+            block_total += entry.extra_time;
+
+            // DISPLAY AS NEW DAY OR LAST BLOCK (??)
+            if(
+                entry.last_in_block === 1 ||
+                work_break ){
+
+                row = {
+                    created_at: entry.created_at,
+                    block_total_secs: block_total
+                }
+
+                rows.push( row );
+            }
+            last_entry = entry;
+        });
+
+        rows.forEach((r:any)=>{
+            total_secs = total_secs + r.block_total_secs;
+        })
+
+        return total_secs;
     }
-
-    public static async enRichResults(results:any){
-
-    }
+    */
 
     private static async total_time_in_seconds(entryText: string): Promise<number>{
 
@@ -160,6 +195,362 @@ export default class Entryinputs {
 
         return total_secs;
     }
+
+    public static async interpret_day_totals_exact(){
+        //let keys:string[] = ['date', 'customer_id', 'activity','time_spent', 'block_total_secs', 'project_id'];
+
+        let rows:any[] = this.interpret(true);
+
+        let dates = {};
+        let dates_with_totals = {};
+        let flat_activity_totals = any[];
+
+        rows.forEach((entry:any)=>{
+
+            if(!entry.date in dates) {
+                let  dates[entry['date']] = any[];
+            }
+            dates[entry['date']].push(entry);
+        });
+
+        Object.keys(dates).forEach((date:string)=>{
+
+            if(!date in dates_with_totals) {
+                let dates_with_totals[date] = {
+                    'date': date,
+                    'activities': {}
+                }
+
+            }
+
+            dates[date].forEach((entry:any)=>{
+                if(!entry['entry_text'] in dates_with_totals[date]['activities']) {
+                    let dates_with_totals[date]['activities'][entry['entry_text']] = {
+                        'time_spent': 0,
+                        'project_id': entry['project_code'],
+                        'customer_id': entry['customer_code']
+                    }
+                }
+
+                if('block_total_secs' in entry){
+                    dates_with_totals[date]['activities'][entry['entry_text']]['time_spent'] += entry['block_total_secs'];
+                }
+            });
+        });
+
+        Object.keys(dates_with_totals).forEach((date:string)=>{
+
+             Object.keys(dates_with_totals[date]['activities']).forEach((entry_text:string)=>{
+
+                let act_record:any = dates_with_totals[date]['activities'][entry_text];
+
+                flat_activity_totals.push({
+
+                    'medewerker': '2', //TODO CONFIGURABLE
+                    'artikel': 'dev', //TODO CONFIGURABLE
+                    'date': dates_with_totals[date]['date'],
+                    'customer_id': act_record['customer_code'],
+                    'project_id': act_record['project_code'],
+                    'activity': entry_text,
+                    'time_spent': act_record['time_spent'] //TODO Format metric hours
+                });
+
+            });
+
+        });
+
+        return flat_activity_totals;
+    }
+
+    public static async interpret(last_only:boolean){
+        let last_entry:any = null;
+        let block_total:number = 0;
+        let block_total_secs:number = 0;
+        let work_break:boolean = false;
+        let cum_start_time:number = 0;
+        let day_next_entry: string = '';
+        let rows: any[] = [];
+        let row: object;
+        let i:number = 0;
+
+        //MINUTEN?
+        // TODO CONFIGURABLE
+        let interval: number = 20;//NSUserDefaults.standardUserDefaults.integerForKey('AskInterval')
+        let extra_marge: number = 30;
+
+        //let sql:string = `SELECT * FROM tempo_entries ORDER BY created_at`;
+        let entries: any = await Database.all(`
+                SELECT
+                   e.entry_text as entry_text,
+                   e.created_at as created_at,
+                   e.last_in_block as last_in_block,
+                   e.extra_time as extra_time,
+                   e.time_delta as time_delta,
+                   c.customer_external_code as customer_code,
+                   c.name as customer_name,
+                   p.project_external_code as project_code,
+                   p.name as project_name
+                FROM tempo_entries e
+                LEFT JOIN tempo_customers c
+                    ON c.id = e.tempo_customer_id
+                LEFT JOIN tempo_projects p
+                    ON p.id = e.tempo_project_id
+                ORDER BY created_at
+                `);
+
+        //let entries: any = await Database.all(sql);
+        await entries.forEach(async (entry:any)=>{
+            i += 1;
+            work_break = false;
+            row = {};
+
+            if(block_total == 0 || cum_start_time == 0){
+                cum_start_time = entry.created_at
+            }
+
+            let sqlNext:string = `SELECT * FROM tempo_entries ORDER BY created_at`;
+            let entriesNext: any = await Database.all(sqlNext);
+            if(entriesNext[i]){
+                day_next_entry = getDateStringFromStamp(entriesNext[i].created_at)
+            }
+            else{
+                day_next_entry = '';
+            }
+
+
+            if( last_entry === null ||
+                entry.entry_text != last_entry.entry_text ||
+                last_entry.last_in_block === 1 )
+            {
+                block_total = 0;
+            }
+
+            // PREVENT TO LONG BLOCKS, WHEN TOO LONG TREAT AS EXTRA BLOCK
+            // TODO CONFIGURABLE
+            if (entry.time_delta > (interval + 5 + extra_marge) * 60 ){
+                block_total += (interval + 5) * 60 + extra_marge;
+                work_break = true;
+            }
+            else {
+                block_total += entry.time_delta;
+            }
+
+            block_total += entry.extra_time;
+
+            //log.debug(getDateStringFromStamp(entry.created_at));
+
+            // DISPLAY AS NEW DAY OR LAST BLOCK
+            if( entry.last_in_block === 1 ||
+                getDateStringFromStamp(entry.created_at) != day_next_entry ||
+                work_break ) {
+
+                block_total_secs = block_total;
+                block_total = 0;
+
+            }
+
+            if( !last_only ||
+                entry.last_in_block === 1 ||
+                getDateStringFromStamp(entry.created_at) != day_next_entry ||
+                work_break ||
+                formatMinutes(block_total) == "00:00" ) {
+
+                row = {
+                    date: entry.created_at,
+                    customer_code: entry.customer_code,
+                    entry_text: entry.entry_text,
+                    block_total_secs: block_total_secs,
+                    project_code: entry.project_code
+                }
+
+                log.debug(row);
+
+                rows.push( row );
+            }
+
+            last_entry = entry;
+
+        });
+
+        return rows;
+
+    }
+
+    /*
+  def interpret(keys = nil, last_only = false)
+    last_entry = nil
+    block_total = 0
+    cum_start_time = 0
+
+    rows = []
+
+    i = 0
+    Entry.where(:not_in_export).eq(0).sort_by('created_at').each do |entry|
+
+      i += 1
+
+      if block_total == 0 ||  cum_start_time == 0
+        cum_start_time = @timeFormat.stringFromDate(entry.created_at)
+      end
+
+      if Entry.where(:not_in_export).eq(0).sort_by('created_at')[i]
+        day_next_entry = @dateFormat.stringFromDate(Entry.where(:not_in_export).eq(0).sort_by('created_at')[i].created_at)
+      else
+        day_next_entry = nil
+      end
+
+      row = {}
+
+      if last_entry.nil? || entry.title != last_entry.title || last_entry.last_in_block?
+        block_total = 0
+      end
+
+      ## Voorkom te lange blokken, dan behandelen als een extra stuk
+      interval = NSUserDefaults.standardUserDefaults.integerForKey('AskInterval')
+      extra_marge = 30
+      if entry.time_delta > (interval + 5 + extra_marge) * 60
+        block_total += (interval + 5) * 60 + extra_marge
+        work_break = true
+      else
+        work_break = false
+        block_total += entry.time_delta
+      end
+
+      block_total += entry.extra_time
+
+      time_delta_display = TimeUtility::format_time_from_seconds block_total
+
+      # weergeven als nieuwe dag of laatste blok
+      if entry.last_in_block? ||
+          @dateFormat.stringFromDate(entry.created_at) != day_next_entry ||
+          work_break
+        block_total_display = TimeUtility::format_time_from_seconds block_total
+        block_total_secs = block_total
+        block_total = 0
+      else
+        block_total_display = ''
+      end
+
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'created_at', entry.created_at)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'day', @dayFormat.stringFromDate(entry.created_at))
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'date', @dateFormat.stringFromDate(entry.created_at))
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'time', @timeFormat.stringFromDate(entry.created_at))
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'time_first_log', cum_start_time)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'time_last_log', @timeFormat.stringFromDate(entry.created_at))
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'activity', entry.title)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'project_id', entry.project_id)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'customer_id', entry.customer_id)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'time_delta', time_delta_display)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'time_spent', block_total_display)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'block_total_secs', block_total_secs)
+      row = GeneralUtility::interpret_add_key_val(row, keys, 'last_in_block', entry.last_in_block)
+
+      if !last_only ||
+          entry.last_in_block? ||
+          @dateFormat.stringFromDate(entry.created_at) != day_next_entry ||
+          work_break ||
+          time_delta_display == '00:00'
+
+        rows << row
+      end
+
+      last_entry = entry
+
+    end
+    rows
+  end
+    */
+
+
+    /*
+    rows = interpret_day_totals_exact(keys)
+  def interpret_day_totals_exact(keys)
+
+    rows = interpret(keys,true)
+
+    dates = {}
+    rows.each do | entry |
+      dates[entry['date']] = [] if dates[entry['date']].nil?
+      dates[entry['date']] << entry
+    end
+
+    dates_with_totals = {}
+    dates.each do | date, entries |
+      if dates_with_totals[date].nil?
+        dates_with_totals[date] = {
+          'date'=> date,
+    #      'day' => entries[0]['day'],
+          'activities' => {}
+        }
+      end
+
+      entries.each do | entry|
+        if dates_with_totals[date]['activities'][entry['activity']].nil?
+          dates_with_totals[date]['activities'][entry['activity']] = {
+            'time_spent' => 0,
+            'project_id' => entry['project_id'],
+            'customer_id' => entry['customer_id']
+          }
+        end
+
+        dates_with_totals[date]['activities'][entry['activity']]['time_spent'] += entry['block_total_secs'] if entry['block_total_secs']
+      end
+    end
+
+    #ap dates_with_totals
+
+    flat_activity_totals = []
+    dates_with_totals.each do | date, entry |
+      entry['activities'].each do | activity, act_record |
+
+       flat_activity_totals << {
+        'medewerker' => '2',
+        'artikel' => 'dev',
+        'date'=> entry['date'],
+        'customer_id'=> act_record['customer_id'],
+        'project_id'=> act_record['project_id'],
+        'activity' => activity,
+        'time_spent'=> TimeUtility::format_time_from_seconds_to_metric_hours(act_record['time_spent'])
+      }
+      end
+    end
+
+    #ap flat_activity_totals
+    flat_activity_totals
+  end
+
+
+    */
+
+
+    public static async getEntryData() {
+
+        let resultsplus:any[] = [];
+        let results2: any;
+        let results: any = await Database.all(`
+                SELECT
+                   e.entry_text as entry_text,
+                   e.tempo_customer_id as customer_id,
+                   c.name as customer_name,
+                   e.tempo_project_id as project_id,
+                   p.name as project_name
+                FROM tempo_entries e
+                LEFT JOIN tempo_customers c
+                    ON c.id = e.tempo_customer_id
+                LEFT JOIN tempo_projects p
+                    ON p.id = e.tempo_project_id
+                GROUP BY entry_text
+                `);
+
+        await this.asyncForEach(results, (async (row:any) => {
+            row.total_time = await this.total_time_in_seconds(row.entry_text);
+            resultsplus.push(row);
+        }));
+
+        results2 = resultsplus;
+        return results2;
+    }
+
 
     public static async add_or_remove_minutes_on_last_day(entryText:string, minutes:number){
 
