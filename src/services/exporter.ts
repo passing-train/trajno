@@ -10,22 +10,13 @@ export default class Exporter {
             medewerker: 'medewerker',
             artikel: 'artikel',
             date: 'date',
-            customer_id: 'customer_id',
-            project_id: 'project_id',
+            customer_code: 'customer_code',
+            project_code: 'project_code',
             activity: 'activity',
             time_spent: 'time_spent'
         };
 
-
-
-        //  2,dev,2020-05-11,7651,PRJ-0132-AKOCK,rusland1,1.76
-        let data = [];
-
-        for (var i = 0; i < 10; i++) {
-            data.push([2,'dev','2020-05-11','7651','PRJ-0132-AKOCK','rusland1, en meer',1.76]);
-        }
-
-        stringify(data, { header: true, columns: columns }, (err, output) => {
+        stringify(dataObj, { header: true, columns: columns }, (err, output) => {
             if (err) throw err;
             fs.writeFile(filepath, output, (err) => {
                 if (err) throw err;

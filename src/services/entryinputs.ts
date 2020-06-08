@@ -1,6 +1,6 @@
 import Database from "@/services/database";
 import log from 'electron-log'
-import {formatMinutes, getDateStringFromStamp} from "@/util/time_util";
+import {formatMinutes, getDateStringFromStamp,formatMetricHours} from "@/util/time_util";
 const ipcMain = require('electron').ipcMain;
 
 export default class Entryinputs {
@@ -59,8 +59,6 @@ export default class Entryinputs {
         });
 
     }
-
-
 
     public static async asyncForEach(array:any, callback:any) {
         for (let index = 0; index < array.length; index++) {
@@ -197,39 +195,37 @@ export default class Entryinputs {
     }
 
     public static async interpret_day_totals_exact(){
-        //let keys:string[] = ['date', 'customer_id', 'activity','time_spent', 'block_total_secs', 'project_id'];
+        let rows = await this.interpret(true);
 
-        let rows:any[] = this.interpret(true);
-
-        let dates = {};
-        let dates_with_totals = {};
-        let flat_activity_totals = any[];
+        let flat_activity_totals: any[] = [];
+        let dates: { [date: string]: any } = { };
+        let dates_with_totals: { [date: string]: any } = { };
 
         rows.forEach((entry:any)=>{
-
-            if(!entry.date in dates) {
-                let  dates[entry['date']] = any[];
+            if(!dates.hasOwnProperty(entry.date)){
+                dates[entry.date] = [];
             }
-            dates[entry['date']].push(entry);
+            dates[entry.date].push(entry);
         });
 
+
         Object.keys(dates).forEach((date:string)=>{
-
-            if(!date in dates_with_totals) {
-                let dates_with_totals[date] = {
-                    'date': date,
-                    'activities': {}
+            if(!dates_with_totals.hasOwnProperty(date)){
+                dates_with_totals[date] = {
+                    date: date,
+                    activities: {}
                 }
-
             }
 
             dates[date].forEach((entry:any)=>{
-                if(!entry['entry_text'] in dates_with_totals[date]['activities']) {
-                    let dates_with_totals[date]['activities'][entry['entry_text']] = {
+                if(!dates_with_totals[date].activities.hasOwnProperty(entry.entry_text)){
+                //if(!entry['entry_text'] in dates_with_totals[date]['activities']) {
+
+                    dates_with_totals[date]['activities'][entry['entry_text']] = {
                         'time_spent': 0,
-                        'project_id': entry['project_code'],
-                        'customer_id': entry['customer_code']
-                    }
+                        'project_code': entry['project_code'],
+                        'customer_code': entry['customer_code']
+                    };
                 }
 
                 if('block_total_secs' in entry){
@@ -243,23 +239,25 @@ export default class Entryinputs {
              Object.keys(dates_with_totals[date]['activities']).forEach((entry_text:string)=>{
 
                 let act_record:any = dates_with_totals[date]['activities'][entry_text];
+                 //log.debug(act_record);
 
                 flat_activity_totals.push({
 
                     'medewerker': '2', //TODO CONFIGURABLE
                     'artikel': 'dev', //TODO CONFIGURABLE
                     'date': dates_with_totals[date]['date'],
-                    'customer_id': act_record['customer_code'],
-                    'project_id': act_record['project_code'],
+                    'customer_code': (act_record['customer_code']?act_record['customer_code']:''),
+                    'project_code': (act_record['project_code']?act_record['project_code']:''),
                     'activity': entry_text,
-                    'time_spent': act_record['time_spent'] //TODO Format metric hours
+                    'time_spent': formatMetricHours(act_record['time_spent']) //TODO Format metric hours
                 });
-
             });
-
         });
 
+        log.debug(flat_activity_totals);
+
         return flat_activity_totals;
+
     }
 
     public static async interpret(last_only:boolean){
@@ -299,14 +297,14 @@ export default class Entryinputs {
                 `);
 
         //let entries: any = await Database.all(sql);
-        await entries.forEach(async (entry:any)=>{
+        await this.asyncForEach(entries, (async (entry:any) => {
+        //await entries.forEach(async (entry:any)=>{
+
             i += 1;
             work_break = false;
             row = {};
 
-            if(block_total == 0 || cum_start_time == 0){
-                cum_start_time = entry.created_at
-            }
+
 
             let sqlNext:string = `SELECT * FROM tempo_entries ORDER BY created_at`;
             let entriesNext: any = await Database.all(sqlNext);
@@ -355,22 +353,26 @@ export default class Entryinputs {
                 work_break ||
                 formatMinutes(block_total) == "00:00" ) {
 
+                //log.debug(getDateStringFromStamp(entry.created_at));
+
                 row = {
-                    date: entry.created_at,
+                    date: getDateStringFromStamp(entry.created_at),
                     customer_code: entry.customer_code,
                     entry_text: entry.entry_text,
                     block_total_secs: block_total_secs,
                     project_code: entry.project_code
                 }
 
-                log.debug(row);
+                //log.debug(row);
 
                 rows.push( row );
             }
 
             last_entry = entry;
 
-        });
+        }));
+
+        //log.debug(rows);
 
         return rows;
 
@@ -576,9 +578,9 @@ export default class Entryinputs {
                 SELECT
                    e.id as id,
                    e.entry_text as entry_text,
-                   e.tempo_customer_id as customer_id,
+                   e.tempo_customer_id as customer_code,
                    c.name as customer_name,
-                   e.tempo_project_id as project_id,
+                   e.tempo_project_id as project_code,
                    p.name as project_name,
                    e.created_at as created_at,
                    e.time_delta as time_delta,

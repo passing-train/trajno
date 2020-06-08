@@ -205,3 +205,4 @@ yarn-error.log*
 
 # Linux generated run files
 $XDG_RUNTIME_DIR/
+export-totals.csv

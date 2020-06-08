@@ -395,9 +395,9 @@ async function exportTotalsForExact(){
     if(!filename.canceled){
         let fpath = filename.filePath;
         if(fpath != undefined){
-            log.debug(await Entryinputs.interpret_day_totals_exact());
+            //log.debug(await Entryinputs.interpret_day_totals_exact());
             //
-//            Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
+            Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
         }
     }
 }

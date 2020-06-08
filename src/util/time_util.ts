@@ -23,9 +23,8 @@ export function getDateStringFromStamp(unix_timestamp: number): string {
     let date: Date = new Date(unix_timestamp * 1000);
     let day: string = "" + date.getDate();
     let year: string = "" + date.getFullYear();
-    let month: string = "" + (date.getMonth()+1);
-
-    let formattedTime: string = day+ '/' + month+'/'+year;
+    let month: string = "" +(date.getMonth()+1)
+    let formattedTime: string = year + '-' + month.toString().padStart(2,"0") + '-' + day.toString().padStart(2,"0");
 
     return formattedTime;
 }
@@ -39,6 +38,10 @@ export function getToday(): Date {
 
 export function getDayLength(): number {
     return 24 * 60 * 60;
+}
+
+export function formatMetricHours(totalSeconds: number): number {
+    return parseFloat((totalSeconds/60/60).toFixed(2));
 }
 
 export function formatMinutes(totalSeconds: number): string {

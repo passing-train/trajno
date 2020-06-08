@@ -1,8 +1,8 @@
 {
   "name": "timenaut",
-  "version": "0.4.0-snapshot",
-  "author": "Karl Martin Teras",
-  "description": "Timenaut is software to monitor your computer usage and give you feedback to help you improve.",
+  "version": "0.5.1",
+  "author": "Pim Snel",
+  "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Timenaut.",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service electron:serve",
