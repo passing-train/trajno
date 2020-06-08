@@ -1,6 +1,6 @@
 {
   "name": "timenaut",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "author": "Pim Snel",
   "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Timenaut.",
   "private": true,
@@ -46,7 +46,7 @@
     "@vue/cli-service": "^4.2.3",
     "@vue/eslint-config-typescript": "^4.0.0",
     "babel-eslint": "^10.0.1",
-    "electron": "^8.3.0",
+    "electron": "^9.0.2",
     "electron-context-menu": "^2.0.1",
     "electron-icon-builder": "^1.0.2",
     "electron-log": "^4.0.6",
