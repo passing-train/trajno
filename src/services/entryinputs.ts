@@ -27,6 +27,10 @@ export default class Entryinputs {
             event.returnValue = await this.getEntryFlatData();
         });
 
+/*        ipcMain.on('flush-entries', async (event: Event, entryText: string ) => {
+            event.returnValue = await this.flushEntries();
+        });
+        */
         ipcMain.on('delete-entry', async (event: Event, entryText: string ) => {
             event.returnValue = await this.deleteEntry(entryText);
         });
@@ -697,6 +701,16 @@ export default class Entryinputs {
 
         await Database.run(sql)
         return true;
+    }
+    public static async flushEntries(): Promise<boolean> {
+
+        const sql = `
+            DELETE from tempo_entries WHERE true
+        `;
+
+        await Database.run(sql);
+        return true;
+
     }
 
     public static async deleteEntry(entryText: string): Promise<boolean> {

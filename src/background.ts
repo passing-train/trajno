@@ -419,7 +419,16 @@ function createMainMenu(){
                 {
                     label: 'Flush all entries',
                     click: async () => {
-                        log.info("Not yet Implemented");
+                        Entryinputs.flushEntries();
+                    }
+                },
+                {
+                    label: 'Quit',
+                    click() {
+                        // @ts-ignore
+                        app.close = true;
+                        log.info("Closing app from quit");
+                        app.quit();
                     }
                 }
             ]
