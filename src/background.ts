@@ -122,6 +122,13 @@ const resumeMenu = {
     }
 };
 
+function focusWazzup(){
+    win.show();
+    win.focus();
+    win.webContents.focus();
+    win.webContents.send('wazzup', 'whoooooooh!')
+}
+
 async function createWindow() {
     log.info(`App version: ${app.getVersion()}`);
 
@@ -192,8 +199,8 @@ async function createWindow() {
         icon: iconUrl
     });
 
-    win.webContents.focus
-    win.webContents.send('wazzup', '')
+    focusWazzup();
+
 
     if (!isDevelopment) {
         //win.setMenuBarVisibility(false);
@@ -309,10 +316,8 @@ if (!lock && !isDevelopment) {
             if (win.isMinimized()) {
                 win.restore();
             }
-            win.show();
-            win.focus();
-            win.webContents.focus();
-            win.webContents.send('wazzup', 'whoooooooh!')
+
+            focusWazzup();
         }
     });
 
@@ -377,8 +382,7 @@ async function hideWindowUntillNextQuestion(){
 
 function showWindowForNextQuestion(){
     tray.setImage(pauseIconUrl);
-    win.show();
-    win.webContents.send('wazzup', 'whoooooooh!')
+    focusWazzup();
 }
 
 async function exportTotalsForExact(){
