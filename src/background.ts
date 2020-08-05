@@ -192,6 +192,8 @@ async function createWindow() {
         icon: iconUrl
     });
 
+    win.webContents.focus
+    win.webContents.send('wazzup', '')
 
     if (!isDevelopment) {
         //win.setMenuBarVisibility(false);
@@ -227,9 +229,7 @@ async function createWindow() {
     });
 
     ipcMain.on('hide-main', async (event: any) => {
-
         hideWindowUntillNextQuestion();
-
     });
 
     ipcMain.on('autostart-isenabled', async (event: any, arg: any) => {
@@ -292,6 +292,7 @@ app.on('window-all-closed', () => {
 app.on('activate', async () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
+    log.info(`act1`);
     if (win === null) {
         await createWindow();
     }
@@ -310,6 +311,8 @@ if (!lock && !isDevelopment) {
             }
             win.show();
             win.focus();
+            win.webContents.focus();
+            win.webContents.send('wazzup', 'whoooooooh!')
         }
     });
 
@@ -326,6 +329,7 @@ if (!lock && !isDevelopment) {
             }
         }
         createMainMenu();
+        log.info(`act2`);
         await createWindow();
     });
 }
