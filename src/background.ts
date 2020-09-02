@@ -191,7 +191,7 @@ async function createWindow() {
     log.info(`iconUrl: ${iconUrl}`);
 
     win = new BrowserWindow({
-        width: 800, height: 600, resizable: false, webPreferences: {
+        width: 800, height: 600, resizable: true, webPreferences: {
             nodeIntegration: true
         },
         fullscreen: false,

@@ -203,7 +203,7 @@ export default class Entries extends Vue {
                 <div>
                     <label>
                         Entry
-                        <input type="text" v-model="editEntryText">
+                        <input v-on:keyup.enter="saveRecord" type="text" v-model="editEntryText">
                     </label>
                 </div>
                 <div>
@@ -214,6 +214,7 @@ export default class Entries extends Vue {
                                 v-model="queryCustomer"
                                 ref="customerText"
                                 :suggestions="filteredCustomerOptions"
+                                v-on:keyup.enter="saveRecord"
                                 @selected="onSelected"
                                 :get-suggestion-value="getSuggestionValue"
                                 :input-props="{id:'autosuggest__input_super', placeholder:''}">
@@ -238,6 +239,7 @@ export default class Entries extends Vue {
                             ref="projectText"
                             :suggestions="filteredProjectOptions"
                             @selected="onSelected"
+                            v-on:keyup.enter="saveRecord"
                             :get-suggestion-value="getSuggestionValue"
                             :input-props="{id:'autosuggest__input_super', placeholder:''}">
                             <div slot-scope="{suggestion}" style="display: flex; align-items: center;">
