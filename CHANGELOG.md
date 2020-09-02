@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.3
+- resizable
+- better focus
+- imprve edit entries interface
 
 ## 5.2
 

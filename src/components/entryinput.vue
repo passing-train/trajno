@@ -64,6 +64,13 @@ export default class Entryinput extends Vue implements Updatable {
     clickHandler(item:any){
 
     }
+    closeSuggest(item:any){
+        let theEntryText = (this.$refs.entryText as Vue);
+        let theInput = theEntryText.$el.querySelector("input")
+        if(theInput){
+            theInput.hideRenderedSuggestions();
+        }
+    }
 
     onInputChange(item:any){
     }
@@ -86,6 +93,13 @@ export default class Entryinput extends Vue implements Updatable {
     }
 
     update(): void {
+    }
+
+    focusnext(){
+        let saveButton = (this.$refs.saveButton as Vue);
+        if(saveButton){
+            saveButton.focus();
+        }
     }
 
     protected isDevelopment(): boolean {
@@ -128,7 +142,7 @@ export default class Entryinput extends Vue implements Updatable {
                                     v-model="query"
                                     ref="entryText"
                                     :suggestions="filteredOptions"
-                                    v-on:keyup.enter="save"
+                                    v-on:keyup.enter="focusnext"
                                     @focus="focusMe"
                                     @click="clickHandler"
                                     @input="onInputChange"
@@ -146,7 +160,7 @@ export default class Entryinput extends Vue implements Updatable {
                     </div>
 
                     <div class="entryinputOption">
-                        <button @click="save()">Save</button>
+                        <button ref="saveButton" @click="save()">Save</button>
                     </div>
 
                 </div>
