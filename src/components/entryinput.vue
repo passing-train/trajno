@@ -64,13 +64,6 @@ export default class Entryinput extends Vue implements Updatable {
     clickHandler(item:any){
 
     }
-    closeSuggest(item:any){
-        let theEntryText = (this.$refs.entryText as Vue);
-        let theInput = theEntryText.$el.querySelector("input")
-        if(theInput){
-            theInput.hideRenderedSuggestions();
-        }
-    }
 
     onInputChange(item:any){
     }
@@ -98,6 +91,7 @@ export default class Entryinput extends Vue implements Updatable {
     focusnext(){
         let saveButton = (this.$refs.saveButton as Vue);
         if(saveButton){
+            // @ts-ignore
             saveButton.focus();
         }
     }
