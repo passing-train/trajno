@@ -106,7 +106,7 @@
         }
 
         public openGitHub() {
-            shell.openExternal("https://github.com/kmteras/timenaut/issues")
+            shell.openExternal("https://github.com/passing-train/trajno/issues")
         }
     }
 </script>

@@ -12,7 +12,7 @@ module.exports = async function (params) {
     console.log('afterSign hook triggered', params);
 
     // Same appId in electron-builder.
-    let appId = 'app.timenaut.timenaut'
+    let appId = 'app.trajno.trajno'
 
     let appPath = path.join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`);
     if (!fs.existsSync(appPath)) {

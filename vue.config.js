@@ -7,8 +7,8 @@ module.exports = {
             externals: ['sqlite3'],
             mainProcessWatch: ['src/**/*.ts', 'src/**/*.vue'],
             builderOptions: {
-                productName: "Timenaut",
-                appId: "app.timenaut.timenaut",
+                productName: "Trajno",
+                appId: "app.trajno.trajno",
                 afterSign: "build/afterSignHook.js",
                 linux: {
                     category: "Utility",
@@ -17,7 +17,7 @@ module.exports = {
                 },
                 mac: {
                     hardenedRuntime: true,
-                    entitlements: "build/timenaut.entitlements"
+                    entitlements: "build/trajno.entitlements"
                 },
                 fileAssociations: [
                     {
@@ -30,8 +30,8 @@ module.exports = {
                 },
                 publish: {
                     provider: "github",
-                    owner: "kmteras",
-                    repo: "timenaut",
+                    owner: "passing-train",
+                    repo: "trajno",
                     vPrefixedTagName: true
                 }
             }

@@ -266,7 +266,7 @@ async function createWindow() {
 
     tray = new Tray(iconUrl); // TODO: Tray icon is still broken with snap
 
-    tray.setToolTip('Timenaut');
+    tray.setToolTip('Trajno');
     switchMenu(menuItems, pauseMenu);
 
     win.on('close', (event: Event) => {

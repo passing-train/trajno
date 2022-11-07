@@ -15,7 +15,7 @@ export default class Database {
     }
 
     async connect(test: boolean = false) {
-        let databaseFileName = process.env.WEBPACK_DEV_SERVER_URL ? 'timenaut_dev.dat' : 'timenaut.dat';
+        let databaseFileName = process.env.WEBPACK_DEV_SERVER_URL ? 'trajno_dev.dat' : 'trajno.dat';
 
         let databaseFile;
 

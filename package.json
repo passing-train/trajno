@@ -1,8 +1,8 @@
 {
-  "name": "timenaut",
+  "name": "trajno",
   "version": "0.5.3",
   "author": "Pim Snel",
-  "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Timenaut.",
+  "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Trajno.",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service electron:serve",
