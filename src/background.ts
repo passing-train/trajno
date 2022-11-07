@@ -328,7 +328,8 @@ if (!lock && !isDevelopment) {
         if (isDevelopment && !process.env.IS_TEST) {
             // Install Vue Devtools
             try {
-                await installVueDevtools()
+                //await installVueDevtools()
+                console.log("skip devtools");
             } catch (e) {
                 log.error('Vue Devtools failed to install:', e.toString())
             }
