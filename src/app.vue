@@ -45,8 +45,8 @@
             {key: '2', icon: 'list', iconAlt: 'list', page: Entries},
             {key: '3', icon: 'face', iconAlt: 'face', page: Customers},
             {key: '4', icon: 'business_center', iconAlt: 'business_center', page: Projects},
-            {key: '5', icon: 'show_chart', iconAlt: 'dashboard', page: Dashboard},
-            {key: '6', icon: 'assignment', iconAlt: 'processes', page: Processes},
+            //{key: '5', icon: 'show_chart', iconAlt: 'dashboard', page: Dashboard},
+           // {key: '6', icon: 'assignment', iconAlt: 'processes', page: Processes},
             {key: '7', icon: 'settings', iconAlt: 'settings', page: Settings},
             {key: '8', icon: 'list', iconAlt: 'list', page: EntriesFlat},
         ];

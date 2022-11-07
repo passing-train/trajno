@@ -29,7 +29,7 @@
 <style scoped>
     .navigation {
         padding-top: 10px;
-        background-color: #3D4A63;
+        background-color: #509bc1;
         display: flex;
         flex-direction: column;
     }
