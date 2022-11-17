@@ -1,5 +1,5 @@
 # CHANGELOG
-## **WORK IN PROGRESS**
+## 0.6.1 (2022-11-17)
 - fix daily view bug
 - fix to lowerbug
 
