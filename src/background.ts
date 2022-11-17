@@ -23,6 +23,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win: any;
+let devtools: any;
 let db = new Database();
 let tray: Tray;
 let heartbeat: Heartbeat;
@@ -222,6 +223,12 @@ async function createWindow() {
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
+        //
+        //
+        devtools = new BrowserWindow()
+        win.webContents.setDevToolsWebContents(devtools.webContents)
+        win.webContents.openDevTools({ mode: 'detach' })
+
         win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
         win.showInactive();
         // if (!process.env.IS_TEST) win.webContents.openDevTools();
@@ -327,8 +334,11 @@ if (!lock && !isDevelopment) {
     app.on('ready', async () => {
         if (isDevelopment && !process.env.IS_TEST) {
             // Install Vue Devtools
+
             try {
                 //await installVueDevtools()
+                //
+                //
                 console.log("skip devtools");
             } catch (e) {
                 log.error('Vue Devtools failed to install:', e.toString())
@@ -389,7 +399,6 @@ function showWindowForNextQuestion(){
 async function exportTotalsForExact(){
 
     let options = {
-        //Placeholder 1
         title: "Export for Exact Online",
 
         buttonLabel : "Export",
@@ -405,7 +414,6 @@ async function exportTotalsForExact(){
         let fpath = filename.filePath;
         if(fpath != undefined){
             //log.debug(await Entryinputs.interpret_day_totals_exact());
-            //
             Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
         }
     }
@@ -452,7 +460,7 @@ function createMainMenu(){
                     label: 'Learn More',
                     click: async () => {
                         const { shell } = require('electron')
-                        await shell.openExternal('https://electronjs.org')
+                        await shell.openExternal('https://github.com/passing-train/trajno')
                     }
                 }
             ]
