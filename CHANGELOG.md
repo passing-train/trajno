@@ -6,6 +6,9 @@
 - add devpopulate run target
 - new name trajno
 - dev on nixos
+- view per day
+- edit day entry
+- remember last entry
 
 ## 0.5.3
 - resizable
