@@ -5,6 +5,10 @@
   "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Trajno.",
   "private": true,
   "scripts": {
+    "_popdev":" cp ~/.config/trajno/trajno.dat ~/.config/trajno/trajno_dev.dat",
+    "_popdev-wal":" cp ~/.config/trajno/trajno.dat-wal ~/.config/trajno/trajno_dev.dat-wal",
+    "_popdev-shm":" cp ~/.config/trajno/trajno.dat-shm ~/.config/trajno/trajno_dev.dat-shm",
+    "popdev":"npm run _popdev && npm run _popdev-wal && npm run _popdev-shm",
     "serve": "vue-cli-service electron:serve",
     "build": "vue-cli-service electron:build",
     "lint": "vue-cli-service lint",
@@ -12,10 +16,12 @@
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
     "generate-icons": "electron-icon-builder --input=./src/assets/icon.png --output=build --flatten",
-    "release": "vue-cli-service electron:build --publish always"
+    "release-vue": "vue-cli-service electron:build --publish always",
+    "release-git": "release-script --addPlaceholder"
   },
   "main": "background.js",
   "dependencies": {
+    "@alcalzone/release-script": "^3.5.9",
     "7zip-bin": "3.1.0",
     "active-win": "^5.1.3",
     "auto-launch": "^5.0.5",

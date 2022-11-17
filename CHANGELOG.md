@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## **WORK IN PROGRESS**
+
+- add git release script
+- add devpopulate run target
+
 ## 5.3
 - resizable
 - better focus
