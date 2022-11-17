@@ -199,6 +199,7 @@ export default class Entryinputs {
 
 
     public static async interpret_day_totals_screen(){
+
         let rows = await this.interpret(true);
 
         //let flat_activity_totals: any;

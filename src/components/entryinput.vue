@@ -81,7 +81,8 @@ export default class Entryinput extends Vue implements Updatable {
     }
 
     get filteredOptions() {
-        let sdata = this.getSuggestDatas(this.query.toLowerCase());
+        let q = (this.query ? this.query.toLowerCase() : "");
+        let sdata = this.getSuggestDatas(q);
 
         return [
             {

@@ -70,7 +70,6 @@ export default class Entries extends Vue implements Updatable {
     editEntryText: string = "";
     selected: string = "";
     extraMinutes: number = 0;
-    lastdate = "";
     view = "totals";
     selectedEntry: EntryData | null = null;
     selectedEntryDaily: DailyEntryData | null = null;
@@ -305,8 +304,7 @@ export default class Entries extends Vue implements Updatable {
                             <td></td>
                         </tr>
 
-                        <span :set="lastdate=entry.date" ></span>
-                        <tr class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
+                        <tr :set="lastdate=entry.date" class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
                             <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>

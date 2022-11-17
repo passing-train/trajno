@@ -239,6 +239,10 @@ async function createWindow() {
     } else {
         createProtocol('app');
         // Load the index.html when not in development
+        devtools = new BrowserWindow()
+        win.webContents.setDevToolsWebContents(devtools.webContents)
+        win.webContents.openDevTools({ mode: 'detach' })
+
         win.loadURL('app://./index.html');
     }
 

@@ -207,3 +207,4 @@ yarn-error.log*
 $XDG_RUNTIME_DIR/
 export-totals.csv
 *.AppImage
+.temp.seed
