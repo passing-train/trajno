@@ -4,21 +4,23 @@
 
 - add git release script
 - add devpopulate run target
+- new name trajno
+- dev on nixos
 
-## 5.3
+## 0.5.3
 - resizable
 - better focus
 - imprve edit entries interface
 
-## 5.2
+## 0.5.2
 
 - flush entries
 
-## 5.1
+## 0.5.1
 
 - export dailytotals
 
-## 5.0
+## 0.5.0
 
 - Port of Tempo datamodel and basic functionality
 
