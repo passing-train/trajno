@@ -50,10 +50,16 @@ let menuItems = [
     {
         label: 'Show/Hide',
         click() {
-            if (win.isVisible()) {
+            if (win && win.isVisible()) {
                 win.hide();
             } else {
-                win.show();
+                if (win === null) {
+                    createWindow();
+                }
+                else{
+                    win.show();
+                }
+
             }
         }
     },
@@ -223,8 +229,6 @@ async function createWindow() {
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
-        //
-        //
         devtools = new BrowserWindow()
         win.webContents.setDevToolsWebContents(devtools.webContents)
         win.webContents.openDevTools({ mode: 'detach' })
@@ -413,8 +417,8 @@ async function exportTotalsForExact(){
     if(!filename.canceled){
         let fpath = filename.filePath;
         if(fpath != undefined){
-            //log.debug(await Entryinputs.interpret_day_totals_exact());
-            Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
+            log.debug(await Entryinputs.interpret_day_totals_exact());
+            //Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
         }
     }
 }

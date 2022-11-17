@@ -35,7 +35,7 @@ export default class Entryinput extends Vue implements Updatable {
              */
 
 
-    entryText: string = "";
+    lastEntryText: string = "";
     query: string = "";
     selected: string = "";
 
@@ -46,11 +46,16 @@ export default class Entryinput extends Vue implements Updatable {
     mounted() {
         ipcRenderer.on('wazzup', this.focusWazzup.bind(this))
         this.focusWazzup();
+
     }
 
     focusWazzup(){
         let theEntryText = (this.$refs.entryText as Vue);
         let theInput = theEntryText.$el.querySelector("input")
+
+        let lastEntryText =  ipcRenderer.sendSync('get-setting', 'lastEntryText');
+        this.query = lastEntryText;
+
         if(theInput){
             theInput.focus();
             theInput.setSelectionRange(0, theInput.value.length);
@@ -112,6 +117,7 @@ export default class Entryinput extends Vue implements Updatable {
         let theEntryText = (this.$refs.entryText as Vue);
         let theInput = theEntryText.$el.querySelector("input")
         if(theInput){
+            ipcRenderer.sendSync('set-setting', "lastEntryText", (theInput.value?theInput.value:""));
             ipcRenderer.send('set-entryinput', theInput.value);
             ipcRenderer.send('hide-main');
         }

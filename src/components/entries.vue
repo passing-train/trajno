@@ -1,14 +1,16 @@
-
 <script lang="ts">
-import {Component, Vue} from 'vue-property-decorator';
+import {Component, Prop, Vue} from 'vue-property-decorator';
 import ipcRenderer from '@/components/ipc_renderer';
 import ContentPage from "@/components/contentPage.vue";
 import Updatable from "@/components/updatable";
+import {Calendar, DatePicker, DateRange} from "v-calendar";
 import {formatMinutes} from "@/util/time_util";
+import DateSelection from '@/components/fragments/date_selection.vue';
 
 const VueAutosuggest = require('vue-autosuggest');
 
 declare interface EntryData {
+    date: string,
     entry_text: string,
     customer_id: number,
     customer_name: string,
@@ -16,7 +18,16 @@ declare interface EntryData {
     project_name: string,
     total_time: number
 }
-
+declare interface DailyEntryData {
+    date: string,
+    entry_id: number,
+    entry_text: string,
+    customer_id: number,
+    customer_name: string,
+    project_id: number,
+    project_name: string,
+    total_time: number
+}
 declare interface SuggestCustomerData {
     id: number,
     name: string
@@ -33,20 +44,38 @@ declare interface ProjectID {
     id: number
 }
 
+// NOTE make sure to add your component in this list. Else it will not be visible
 @Component({
-    components: VueAutosuggest
+    components: {...VueAutosuggest, ...{DateSelection}}
 })
+    /*
+    components: {
+        VueAutosuggest,
+        DateSelection
+    }
+    */
 
-export default class Entries extends Vue {
+export default class Entries extends Vue implements Updatable {
 
-    entryData: EntryData[] = this.getEntryData();
+    @Prop() range!: DateRange;
+
+    updateRange(range: DateRange) {
+        this.$emit('updateRange', range);
+    }
+
+    entryData: EntryData[] = [];
+    dailyEntryData: DailyEntryData[] = [];
+
     selectedEntryText: string = "";
     editEntryText: string = "";
     selected: string = "";
     extraMinutes: number = 0;
+    lastdate = "";
+    view = "totals";
     selectedEntry: EntryData | null = null;
+    selectedEntryDaily: DailyEntryData | null = null;
+    selectedEntryId: number = 0;
 
-    //customerText: string = '';
     queryCustomer: string = "";
     queryProject: string = "";
 
@@ -67,12 +96,20 @@ export default class Entries extends Vue {
     }
 
     mounted() {
-        this.entryData = this.getEntryData();
-        //document.addEventListener("keyup", (event) => this.nextItem(event));
+        this.updateEntryData();
     }
 
     getEntryData(): EntryData[] {
         return ipcRenderer.sendSync('get-entry-data');
+    }
+
+    updateEntryData(){
+        this.entryData = this.getEntryData();
+        this.dailyEntryData = this.getDailyEntryData();
+    }
+
+    getDailyEntryData(): DailyEntryData[] {
+        return ipcRenderer.sendSync('get-daily-entry-data');
     }
 
     getSelectedEntryText(): string {
@@ -82,23 +119,58 @@ export default class Entries extends Vue {
         return "";
     }
 
-    clickEntry(entry: EntryData) {
-
-        this.selectedEntry = entry;
-        this.selectedEntryText = entry.entry_text;
-        this.editEntryText = this.selectedEntry.entry_text;
-        this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
-        this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
-
+    getDayName(dateStr: string, locale='en-US'): string {
+        var date = new Date(dateStr);
+        return date.toLocaleDateString(locale, { weekday: 'long' });
     }
+
+    clickEntry(entry: EntryData) {
+        this.selectedEntry = entry;
+
+        this.selectedEntryText = entry.entry_text;
+        this.selectedEntryId = 0;
+
+        this.editEntryText = this.selectedEntry.entry_text;
+        this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"");
+        this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
+    }
+
+    clickEntryDaily(entry: DailyEntryData) {
+
+        this.selectedEntryDaily = entry;
+
+        this.selectedEntryId = entry.entry_id;
+        this.selectedEntryText = "";
+
+        this.editEntryText = this.selectedEntryDaily.entry_text;
+        this.queryCustomer = (this.selectedEntryDaily.customer_name?this.selectedEntryDaily.customer_name:"");
+        this.queryProject = (this.selectedEntryDaily.project_name?this.selectedEntryDaily.project_name:"")
+    }
+
+    viewDaily(){
+        this.view = "daily";
+    }
+
+    viewTotals(){
+        this.view = "totals";
+    }
+
     protected formatMinutes(seconds:number):string {
         return formatMinutes(seconds);
     }
 
     protected async addMinutes(): Promise<void> {
-        await ipcRenderer.send('add-remove-minutes-to-entry', this.selectedEntryText, this.extraMinutes);
-        this.extraMinutes = 0;
-        this.entryData = this.getEntryData();
+
+        if(this.selectedEntryId !== 0){
+            await ipcRenderer.send('add-remove-minutes-to-entry-by-id', this.selectedEntryId, this.extraMinutes);
+            this.extraMinutes = 0;
+            this.updateEntryData();
+        }
+        else{
+            await ipcRenderer.send('add-remove-minutes-to-entry', this.selectedEntryText, this.extraMinutes);
+            this.extraMinutes = 0;
+            this.updateEntryData();
+        }
     }
 
     protected async saveRecord(): Promise<void> {
@@ -123,7 +195,7 @@ export default class Entries extends Vue {
         }
 
         await ipcRenderer.send('update-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id);
-        this.entryData = this.getEntryData();
+        this.updateEntryData();
     }
 
     update(): void {
@@ -131,7 +203,7 @@ export default class Entries extends Vue {
 
     protected async deleteRecord(): Promise<void> {
         await ipcRenderer.send('delete-entry', this.selectedEntryText);
-        this.entryData = this.getEntryData();
+        this.updateEntryData();
     }
 
     onSelected(item:any){
@@ -166,15 +238,24 @@ export default class Entries extends Vue {
 
 <template>
     <div id="entries">
-        <div class="section">
-            <div class="entryinputFlexRow">
-                <h3 class="entryinputText">Entries</h3>
-            </div>
-        </div>
 
+        <div class="section">
+            <button class="is-pulled-right button" @click="viewDaily">Daily</button>
+            <button class="is-pulled-right button" @click="viewTotals">Totals</button>
+            <div class="entryinputFlexRow">
+                <h3 class="entryinputText">Activity Entries</h3>
+            </div>
+
+            <!-- TODO
+            <div id="dateSelectionSection" v-if="view==='daily'" class="topSection is-vertical-center">
+            <date-selection :range="range" @updateRange="updateRange" />
+            </div>
+            -->
+
+         </div>
         <div class="section" id="tableSection">
 
-            <div id="entryTableSection">
+            <div id="entryTableSection" v-if="view==='totals'">
                 <table class="table is-narrow" id="entriesTable">
                     <thead>
                         <tr>
@@ -182,21 +263,63 @@ export default class Entries extends Vue {
                             <th>Customer</th>
                             <th>Project</th>
                             <th>Total Time</th>
-                            <th>Time Today</th>
                         </tr>
                     </thead>
-                    <tbody v-for="entry in this.entryData" :key="entry.entry_text" @click="clickEntry(entry)">
+
+                    <tbody v-for="entry in this.entryData" :key="entry.entry_id" @click="clickEntry(entry)">
                         <tr class='hover' :class="{selected: selectedEntryText === entry.entry_text}">
                             <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
                             <td>{{formatMinutes(entry.total_time)}}</td>
-                            <td></td>
                         </tr>
                     </tbody>
+
+
+                </table>
+            </div>
+
+            <div id="entryTableSection" v-if="view==='daily'">
+                <table class="table is-narrow" id="entriesTable">
+                    <thead>
+                        <tr>
+                            <th>Entry</th>
+                            <th>Customer</th>
+                            <th>Project</th>
+                            <th>Total Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody v-for="entry in this.dailyEntryData" :key="entry.entry_id" @click="clickEntryDaily(entry)">
+                        <tr v-if="lastdate !==entry.date">
+                            <td style="height:20px;">&nbsp;</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+
+                        <tr v-if="lastdate !==entry.date" style="background-color: #559cbf; color: white; ">
+                            <td>{{getDayName(lastdate)}} {{lastdate}}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+
+                        <span :set="lastdate=entry.date" ></span>
+                        <tr class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
+                            <td>{{entry.entry_text}}</td>
+                            <td>{{entry.customer_name}}</td>
+                            <td>{{entry.project_name}}</td>
+                            <td>{{formatMinutes(entry.total_time)}}</td>
+                        </tr>
+                    </tbody>
+
+
                 </table>
             </div>
         </div>
+
+
 
         <div class="section" id="editSection">
             <div id="col1">
@@ -277,6 +400,11 @@ export default class Entries extends Vue {
     grid-template-rows: 90px 2fr 1fr;
     height: 100%;
     margin-left: 10px;
+}
+
+#dateSelectionSection {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
 }
 
 #tableSection {
