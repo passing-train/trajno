@@ -22,6 +22,7 @@ declare interface DailyEntryData {
     date: string,
     entry_id: number,
     entry_text: string,
+    involved_entry_ids: number[],
     customer_id: number,
     customer_name: string,
     project_id: number,
@@ -68,10 +69,13 @@ export default class Entries extends Vue implements Updatable {
 
     selectedEntryText: string = "";
     editEntryText: string = "";
+
     selected: string = "";
     extraMinutes: number = 0;
     view = "daily";
+
     selectedEntry: EntryData | null = null;
+
     selectedEntryDaily: DailyEntryData | null = null;
     selectedEntryId: number = 0;
 
@@ -130,7 +134,7 @@ export default class Entries extends Vue implements Updatable {
         this.selectedEntryId = 0;
 
         this.editEntryText = this.selectedEntry.entry_text;
-        this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"");
+        this.queryCustomer = (this.selectedEntry.customer_name ? this.selectedEntry.customer_name:"" );
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
     }
 
@@ -173,11 +177,13 @@ export default class Entries extends Vue implements Updatable {
     }
 
     protected async saveRecord(): Promise<void> {
+
         let customerId: CustomerID;
         let cust_id: number = -1;
 
         let theCustomerText = (this.$refs.customerText as Vue);
         let theCustomerInput = theCustomerText.$el.querySelector("input")
+
         if(theCustomerInput){
             customerId = await this.getCustomerOrInsert(theCustomerInput.value);
             cust_id = customerId.id;
@@ -188,12 +194,20 @@ export default class Entries extends Vue implements Updatable {
 
         let theProjectText = (this.$refs.projectText as Vue);
         let theProjectInput = theProjectText.$el.querySelector("input")
+
         if(theProjectInput){
             projectId = await this.getProjectOrInsert(theProjectInput.value);
             prod_id = projectId.id;
         }
 
-        await ipcRenderer.send('update-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id);
+        if(this.view === "daily" && this.selectedEntryDaily)
+        {
+            let involvedIds = this.selectedEntryDaily.involved_entry_ids;
+            await ipcRenderer.send('update-daily-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id, involvedIds );
+        }
+        else{
+            await ipcRenderer.send('update-entry', this.selectedEntryText, this.editEntryText, cust_id, prod_id);
+        }
         this.updateEntryData();
     }
 
@@ -201,9 +215,32 @@ export default class Entries extends Vue implements Updatable {
     }
 
     protected async deleteRecord(): Promise<void> {
-        await ipcRenderer.send('delete-entry', this.selectedEntryText);
+
+        if(this.view === "daily" && this.selectedEntryDaily)
+        {
+            let involvedIds = this.selectedEntryDaily.involved_entry_ids;
+            await ipcRenderer.send('delete-daily-entry', involvedIds);
+        }
+        else{
+            await ipcRenderer.send('delete-entry', this.selectedEntryText);
+        }
         this.updateEntryData();
     }
+
+
+    protected async archiveRecord(): Promise<void> {
+
+        if(this.view === "daily" && this.selectedEntryDaily)
+        {
+            let involvedIds = this.selectedEntryDaily.involved_entry_ids;
+            await ipcRenderer.send('archive-daily-entry', involvedIds);
+        }
+        else{
+            alert("not yet implemented")
+        }
+        this.updateEntryData();
+    }
+
 
     onSelected(item:any){
         this.selected = item.item;
@@ -239,8 +276,8 @@ export default class Entries extends Vue implements Updatable {
     <div id="entries">
 
         <div class="section">
-            <button class="is-pulled-right button" @click="viewDaily">Daily</button>
             <button class="is-pulled-right button" @click="viewTotals">Totals</button>
+            <button class="is-pulled-right button" @click="viewDaily">Daily</button>
             <div class="entryinputFlexRow">
                 <h3 class="entryinputText">Activity Entries</h3>
             </div>
@@ -371,6 +408,7 @@ export default class Entries extends Vue implements Updatable {
                 <div class="entryinputOption">
                     <button @click="saveRecord()">Save</button>
                     <button @click="deleteRecord()">Delete</button>
+                    <button @click="archiveRecord()">Archive</button>
                 </div>
                 <div>
                     <label>
@@ -491,5 +529,3 @@ tr.hover:hover {
 }
 
 </style>
-
-

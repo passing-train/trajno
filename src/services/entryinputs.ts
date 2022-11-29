@@ -32,8 +32,15 @@ export default class Entryinputs {
         ipcMain.on('delete-entry', async (event: Event, entryText: string ) => {
             event.returnValue = await this.deleteEntry(entryText);
         });
+        ipcMain.on('delete-daily-entry', async (event: Event, involvedEntryIds: number[] ) => {
+            event.returnValue = await this.deleteDailyEntry(involvedEntryIds);
+        });
         ipcMain.on('delete-entry-flat', async (event: Event, entryId: number ) => {
             event.returnValue = await this.deleteEntryFlat(entryId);
+        });
+
+        ipcMain.on('archive-daily-entry', async (event: Event, involvedEntryIds: number[] ) => {
+            event.returnValue = await this.archiveDailyEntry(involvedEntryIds);
         });
 
         ipcMain.on('update-entry', async (
@@ -45,6 +52,18 @@ export default class Entryinputs {
         ) => {
             event.returnValue = await this.updateRecord(oldText, newText, customerId, projectId);
         });
+
+        ipcMain.on('update-daily-entry', async (
+            event: Event,
+            oldText: string,
+            newText: string,
+            customerId: number,
+            projectId: number,
+            involvedEntryIds: number[],
+        ) => {
+            event.returnValue = await this.updateDailyRecord(oldText, newText, customerId, projectId, involvedEntryIds);
+        });
+
 
         ipcMain.on('add-remove-minutes-to-entry', async (event: Event, entryText: string, minutes: number ) => {
             event.returnValue = await this.add_or_remove_minutes_on_last_day(entryText,minutes);
@@ -160,7 +179,6 @@ export default class Entryinputs {
 
             dates[date].forEach((entry:any)=>{
                 if(!dates_with_totals[date].activities.hasOwnProperty(entry.entry_text)){
-                //if(!entry['entry_text'] in dates_with_totals[date]['activities']) {
 
                     dates_with_totals[date]['activities'][entry['entry_text']] = {
                         'time_spent': 0,
@@ -208,6 +226,7 @@ export default class Entryinputs {
         let rows: any[] = [];
         let row: object;
         let i:number = 0;
+        let involved_entry_ids: number[] = [];
 
         //MINUTEN?
         // TODO CONFIGURABLE
@@ -222,6 +241,7 @@ export default class Entryinputs {
                    e.last_in_block as last_in_block,
                    e.extra_time as extra_time,
                    e.time_delta as time_delta,
+                   e.sticky as archived,
                    c.customer_external_code as customer_code,
                    c.name as customer_name,
                    p.project_external_code as project_code,
@@ -235,17 +255,16 @@ export default class Entryinputs {
                     ON c.id = e.tempo_customer_id
                 LEFT JOIN tempo_projects p
                     ON p.id = e.tempo_project_id
+                WHERE (e.sticky = 0 OR e.sticky IS NULL)
                 ORDER BY created_at
                 `);
-
-
 
         await this.asyncForEach(entries, (async (entry:any) => {
 
             i += 1;
             work_break = false;
             row = {};
-
+            involved_entry_ids.push(entry.entry_id);
 
             let sqlNext:string = `SELECT * FROM tempo_entries ORDER BY created_at`;
             let entriesNext: any = await Database.all(sqlNext);
@@ -256,9 +275,7 @@ export default class Entryinputs {
                 day_next_entry = '';
             }
 
-            if( last_entry === null ||
-                entry.entry_text != last_entry.entry_text ||
-                last_entry.last_in_block === 1 )
+            if( last_entry === null || entry.entry_text != last_entry.entry_text || last_entry.last_in_block === 1 )
             {
                 block_total = 0;
             }
@@ -297,7 +314,7 @@ export default class Entryinputs {
                     entry_text: entry.entry_text,
                     block_total_secs: block_total_secs,
                     project_code: entry.project_code,
-
+                    involved_entry_ids: involved_entry_ids,
                     entry_id: entry.entry_id,
                     customer_id: entry.customer_id,
                     customer_name: entry.customer_name,
@@ -306,6 +323,7 @@ export default class Entryinputs {
 
                 }
 
+                involved_entry_ids = [];
 
                 rows.push( row );
             }
@@ -319,13 +337,10 @@ export default class Entryinputs {
     }
 
 
-    //involved funcs:
-    //  - interpret
     public static async interpret_day_totals_screen() {
 
         let rows = await this.interpret(true);
 
-        //let flat_activity_totals: any;
         let flat_activity_totals: any[] = [];
         let dates: { [date: string]: any } = { };
         let dates_with_totals: { [date: string]: any } = { };
@@ -353,6 +368,8 @@ export default class Entryinputs {
                         'total_time': 0,
                         'entry_id': entry['entry_id'],
                         'entry_text': entry['entry_text'],
+                        'involved_entry_ids': entry['involved_entry_ids'],
+                        'archived': entry['entry_text'],
                         'customer_id': entry['customer_id'],
                         'customer_name': entry['customer_name'],
                         'project_id': entry['project_id'],
@@ -362,7 +379,14 @@ export default class Entryinputs {
 
                 if('block_total_secs' in entry){
                     dates_with_totals[date]['activities'][entry['entry_text']]['total_time'] += entry['block_total_secs'];
+                    dates_with_totals[date]['activities'][entry['entry_text']]['involved_entry_ids'].concat(entry['involved_entry_ids']);
+                    let tmpidsarr = dates_with_totals[date]['activities'][entry['entry_text']]['involved_entry_ids'];
+                    dates_with_totals[date]['activities'][entry['entry_text']]['involved_entry_ids']= tmpidsarr.concat(entry['involved_entry_ids']).filter((v:number, i:number, a:number[]) => a.indexOf(v) === i);
                 }
+                else{
+                    console.log("NOSECS");
+                }
+
             });
         });
 
@@ -534,6 +558,19 @@ export default class Entryinputs {
         await Database.run(sql)
         return true;
     }
+    public static async updateDailyRecord(oldText: string, newText: string, customerId: number, projectId: number, involvedEntryIds: number[]): Promise<boolean> {
+
+        const sql = `
+            UPDATE tempo_entries SET
+            entry_text="${newText}",
+            tempo_customer_id = ${customerId},
+            tempo_project_id = ${projectId}
+            WHERE id in (${involvedEntryIds.join(',')})
+        `;
+
+        await Database.run(sql)
+        return true;
+    }
     public static async updateRecordFlat(entryId: number, newText: string, customerId: number, projectId: number, lastInBlock: number): Promise<boolean> {
 
         const sql = `
@@ -558,12 +595,35 @@ export default class Entryinputs {
         return true;
 
     }
+    public static async archiveDailyEntry(involvedEntryIds: number[]): Promise<boolean> {
+
+        const sql = `
+            UPDATE tempo_entries SET
+            sticky=1
+            WHERE id in (${involvedEntryIds.join(',')})
+        `;
+
+        await Database.run(sql)
+        return true;
+    }
+
 
     public static async deleteEntry(entryText: string): Promise<boolean> {
 
         const sql = `
             DELETE from tempo_entries
             WHERE entry_text = "${entryText}"
+        `;
+
+        await Database.run(sql);
+        return true;
+
+    }
+    public static async deleteDailyEntry(involvedEntryIds: number[]): Promise<boolean> {
+
+        const sql = `
+            DELETE from tempo_entries
+            WHERE id in (${involvedEntryIds.join(',')})
         `;
 
         await Database.run(sql);

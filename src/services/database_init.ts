@@ -1,3 +1,6 @@
+// NOTE TODO FIXME sticky has now the function archived
+
+
 export default `
 
     CREATE TABLE IF NOT EXISTS tempo_customers
