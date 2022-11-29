@@ -1,5 +1,5 @@
 # CHANGELOG
-## **WORK IN PROGRESS**
+## 0.6.2 (2022-11-29)
 - fix day shifting
 - enable setting last_in_block
 
