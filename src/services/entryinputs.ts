@@ -198,75 +198,6 @@ export default class Entryinputs {
 
     }
 
-
-    public static async interpret_day_totals_screen(){
-
-        let rows = await this.interpret(true);
-
-        //let flat_activity_totals: any;
-        let flat_activity_totals: any[] = [];
-        let results2: any;
-        let dates: { [date: string]: any } = { };
-        let dates_with_totals: { [date: string]: any } = { };
-
-        rows.forEach((entry:any)=>{
-            if(!dates.hasOwnProperty(entry.date)){
-                dates[entry.date] = [];
-            }
-            dates[entry.date].push(entry);
-        });
-
-
-        Object.keys(dates).forEach((date:string)=>{
-            if(!dates_with_totals.hasOwnProperty(date)){
-                dates_with_totals[date] = {
-                    date: date,
-                    activities: {}
-                }
-            }
-
-            dates[date].forEach((entry:any)=>{
-                if(!dates_with_totals[date].activities.hasOwnProperty(entry.entry_text)){
-                    dates_with_totals[date]['activities'][entry['entry_text']] = {
-                        'time_spent': 0,
-                        'entry_id': entry['entry_id'],
-                        'customer_id': entry['customer_id'],
-                        'customer_name': entry['customer_name'],
-                        'project_id': entry['project_id'],
-                        'project_name': entry['project_name']
-                    };
-                }
-
-                if('block_total_secs' in entry){
-                    dates_with_totals[date]['activities'][entry['entry_text']]['time_spent'] += entry['block_total_secs'];
-                }
-            });
-        });
-
-        Object.keys(dates_with_totals).forEach((date:string)=>{
-
-             Object.keys(dates_with_totals[date]['activities']).forEach((entry_text:string)=>{
-
-                let act_record:any = dates_with_totals[date]['activities'][entry_text];
-
-                flat_activity_totals.push({
-                    'date': dates_with_totals[date]['date'],
-                    'customer_id': (act_record['customer_id']?act_record['customer_id']:''),
-                    'customer_name': (act_record['customer_name']?act_record['customer_name']:''),
-                    'project_id': (act_record['project_id']?act_record['project_id']:''),
-                    'entry_id': act_record['entry_id'],
-                    'project_name': (act_record['project_name']?act_record['project_name']:''),
-                    'entry_text': entry_text,
-                    'total_time': act_record['time_spent'] //TODO Format metric hours
-                });
-            });
-        });
-
-        results2 = flat_activity_totals;
-        return results2;
-
-    }
-
     public static async interpret(last_only:boolean){
         let last_entry:any = null;
         let block_total:number = 0;
@@ -307,11 +238,14 @@ export default class Entryinputs {
                 ORDER BY created_at
                 `);
 
+
+
         await this.asyncForEach(entries, (async (entry:any) => {
 
             i += 1;
             work_break = false;
             row = {};
+
 
             let sqlNext:string = `SELECT * FROM tempo_entries ORDER BY created_at`;
             let entriesNext: any = await Database.all(sqlNext);
@@ -341,7 +275,6 @@ export default class Entryinputs {
 
             block_total += entry.extra_time;
 
-
             // DISPLAY AS NEW DAY OR LAST BLOCK
             if( entry.last_in_block === 1 ||
                 getDateStringFromStamp(entry.created_at) != day_next_entry ||
@@ -357,7 +290,6 @@ export default class Entryinputs {
                 getDateStringFromStamp(entry.created_at) != day_next_entry ||
                 work_break ||
                 formatMinutes(block_total) == "00:00" ) {
-
 
                 row = {
                     date: getDateStringFromStamp(entry.created_at),
@@ -381,8 +313,63 @@ export default class Entryinputs {
             last_entry = entry;
         }));
 
+
+
         return rows;
     }
+
+
+    //involved funcs:
+    //  - interpret
+    public static async interpret_day_totals_screen() {
+
+        let rows = await this.interpret(true);
+
+        //let flat_activity_totals: any;
+        let flat_activity_totals: any[] = [];
+        let dates: { [date: string]: any } = { };
+        let dates_with_totals: { [date: string]: any } = { };
+        let return_data: any;
+
+        rows.forEach((entry:any)=>{
+            if(!dates.hasOwnProperty(entry.date)){
+                dates[entry.date] = [];
+            }
+            dates[entry.date].push(entry);
+        });
+
+
+        Object.keys(dates).forEach((date:string)=>{
+            if(!dates_with_totals.hasOwnProperty(date)){
+                dates_with_totals[date] = {
+                    date: date,
+                    activities: {}
+                }
+            }
+
+            dates[date].forEach((entry:any)=>{
+                if(!dates_with_totals[date].activities.hasOwnProperty(entry.entry_text)){
+                    dates_with_totals[date]['activities'][entry['entry_text']] = {
+                        'total_time': 0,
+                        'entry_id': entry['entry_id'],
+                        'entry_text': entry['entry_text'],
+                        'customer_id': entry['customer_id'],
+                        'customer_name': entry['customer_name'],
+                        'project_id': entry['project_id'],
+                        'project_name': entry['project_name']
+                    };
+                }
+
+                if('block_total_secs' in entry){
+                    dates_with_totals[date]['activities'][entry['entry_text']]['total_time'] += entry['block_total_secs'];
+                }
+            });
+        });
+
+        return_data = dates_with_totals;
+        return return_data;
+    }
+
 
     public static async getEntryData() {
 

@@ -45,7 +45,7 @@ export default class EntriesFlat extends Vue implements Updatable {
     entryFlatData: EntryFlatData[] = this.getEntryFlatData();
     selectedEntryId: number = 0;
     editEntryText: string = "";
-    lastInBlock: number = "";
+    lastInBlock: number = 0;
     selected: string = "";
     selectedEntry: EntryFlatData | null = null;
 

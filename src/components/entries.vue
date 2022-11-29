@@ -70,7 +70,7 @@ export default class Entries extends Vue implements Updatable {
     editEntryText: string = "";
     selected: string = "";
     extraMinutes: number = 0;
-    view = "totals";
+    view = "daily";
     selectedEntry: EntryData | null = null;
     selectedEntryDaily: DailyEntryData | null = null;
     selectedEntryId: number = 0;
@@ -278,6 +278,9 @@ export default class Entries extends Vue implements Updatable {
                 </table>
             </div>
 
+
+            <!---- DAILY ---->
+
             <div id="entryTableSection" v-if="view==='daily'">
                 <table class="table is-narrow" id="entriesTable">
                     <thead>
@@ -289,27 +292,21 @@ export default class Entries extends Vue implements Updatable {
                         </tr>
                     </thead>
 
-                    <tbody v-for="entry in this.dailyEntryData" :key="entry.entry_id" @click="clickEntryDaily(entry)">
-                        <tr v-if="lastdate !==entry.date">
-                            <td style="height:20px;">&nbsp;</td>
+                    <tbody v-for="day in this.dailyEntryData" :key="day.date">
+                        <tr style="background-color: #559cbf; color: white; ">
+                            <td>{{getDayName(day.date)}} {{day.date}}</td>
                             <td></td>
                             <td></td>
                             <td></td>
                         </tr>
 
-                        <tr v-if="lastdate !==entry.date" style="background-color: #559cbf; color: white; ">
-                            <td>{{getDayName(lastdate)}} {{lastdate}}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-
-                        <tr :set="lastdate=entry.date" class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
+                        <tr v-for="entry in day.activities" :key="entry.entry_id" @click="clickEntryDaily(entry)" class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
                             <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
                             <td>{{formatMinutes(entry.total_time)}}</td>
                         </tr>
+
                     </tbody>
 
 
