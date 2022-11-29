@@ -59,8 +59,9 @@ export default class Entryinputs {
             newText: string,
             customerId: number,
             projectId: number,
+            lastInBlock: number,
         ) => {
-            event.returnValue = await this.updateRecordFlat(entryId, newText, customerId, projectId);
+            event.returnValue = await this.updateRecordFlat(entryId, newText, customerId, projectId, lastInBlock);
         });
 
     }
@@ -546,12 +547,13 @@ export default class Entryinputs {
         await Database.run(sql)
         return true;
     }
-    public static async updateRecordFlat(entryId: number, newText: string, customerId: number, projectId: number): Promise<boolean> {
+    public static async updateRecordFlat(entryId: number, newText: string, customerId: number, projectId: number, lastInBlock: number): Promise<boolean> {
 
         const sql = `
             UPDATE tempo_entries SET
             entry_text="${newText}",
             tempo_customer_id = ${customerId},
+            last_in_block = ${lastInBlock},
             tempo_project_id = ${projectId}
             WHERE id = "${entryId}"
         `;

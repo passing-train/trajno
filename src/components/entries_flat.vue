@@ -45,6 +45,7 @@ export default class EntriesFlat extends Vue implements Updatable {
     entryFlatData: EntryFlatData[] = this.getEntryFlatData();
     selectedEntryId: number = 0;
     editEntryText: string = "";
+    lastInBlock: number = "";
     selected: string = "";
     selectedEntry: EntryFlatData | null = null;
 
@@ -91,6 +92,7 @@ export default class EntriesFlat extends Vue implements Updatable {
         this.selectedEntry = entry;
         this.selectedEntryId = entry.id;
         this.editEntryText = this.selectedEntry.entry_text;
+        this.lastInBlock = this.selectedEntry.last_in_block;
         this.queryCustomer = (this.selectedEntry.customer_name?this.selectedEntry.customer_name:"")
         this.queryProject = (this.selectedEntry.project_name?this.selectedEntry.project_name:"")
 
@@ -118,7 +120,7 @@ export default class EntriesFlat extends Vue implements Updatable {
         }
 
 
-        await ipcRenderer.send('update-entry-flat', this.selectedEntryId, this.editEntryText, cust_id, prod_id);
+        await ipcRenderer.send('update-entry-flat', this.selectedEntryId, this.editEntryText, cust_id, prod_id, this.lastInBlock);
         this.entryFlatData = this.getEntryFlatData();
     }
 
@@ -244,6 +246,12 @@ export default class EntriesFlat extends Vue implements Updatable {
                             </div>
                         </vue-autosuggest>
 
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Last in block
+                        <input type="text" size="4" v-model="lastInBlock">
                     </label>
                 </div>
 
