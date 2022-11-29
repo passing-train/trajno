@@ -1,5 +1,5 @@
 # CHANGELOG
-## **WORK IN PROGRESS**
+## 0.7.1 (2022-11-29)
 - [ ] format date in NL
 
 ## 0.7.0 (2022-11-29)

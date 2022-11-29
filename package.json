@@ -1,6 +1,6 @@
 {
   "name": "trajno",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Pim Snel",
   "description": "Tempo prevents you working hours to disappear. Tempo is a fork or extension of Trajno.",
   "private": true,
