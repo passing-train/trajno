@@ -126,6 +126,18 @@ export default class Entries extends Vue implements Updatable {
         var date = new Date(dateStr);
         return date.toLocaleDateString(locale, { weekday: 'long' });
     }
+    formatDate(dateStr: string, locale='nl-NL'): string {
+        var date = new Date(dateStr);
+        const options = {
+        weekday: "long",
+         year: "numeric",
+         month: "long",
+         day: "numeric",
+        };
+        return date.toLocaleDateString(locale, options);
+    }
+
+
 
     clickEntry(entry: EntryData) {
         this.selectedEntry = entry;
@@ -331,7 +343,7 @@ export default class Entries extends Vue implements Updatable {
 
                     <tbody v-for="day in this.dailyEntryData" :key="day.date">
                         <tr style="background-color: #559cbf; color: white; ">
-                            <td>{{getDayName(day.date)}} {{day.date}}</td>
+                            <td>{{formatDate(day.date)}}</td>
                             <td></td>
                             <td></td>
                             <td></td>

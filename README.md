@@ -42,5 +42,5 @@ npm run lint
 - make sure no compile errors
 - npm run release-git
 - npm run build
-- cd dist_electron && ln -sf Trajno-0.6.2.AppImage Trajno-latest.AppImage
+- cd dist_electron && ln -sf Trajno-0.6.2.AppImage Trajno-latest.AppImage && cd ..
 

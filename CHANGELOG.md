@@ -1,4 +1,7 @@
 # CHANGELOG
+## **WORK IN PROGRESS**
+- [ ] format date in NL
+
 ## 0.7.0 (2022-11-29)
 - [ ] delete per day
 - [ ] save per day
