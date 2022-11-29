@@ -1,5 +1,7 @@
 # CHANGELOG
 ## **WORK IN PROGRESS**
+- fix day shifting
+- enable setting last_in_block
 
 ## 0.6.1 (2022-11-17)
 - fix daily view bug
