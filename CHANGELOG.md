@@ -1,11 +1,14 @@
 # CHANGELOG
+## **WORK IN PROGRESS**
+- option to show/hide archived entries
+
 ## 0.7.1 (2022-11-29)
-- [ ] format date in NL
+- format date in NL
 
 ## 0.7.0 (2022-11-29)
-- [ ] delete per day
-- [ ] save per day
-- [ ] archive entries
+- delete per day
+- save per day
+- archive entries
 
 ## 0.6.2 (2022-11-29)
 - fix day shifting

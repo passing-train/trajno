@@ -22,8 +22,8 @@ export default class Entryinputs {
         ipcMain.on('get-entry-data', async (event: Event ) => {
             event.returnValue = await this.getEntryData();
         });
-        ipcMain.on('get-daily-entry-data', async (event: Event ) => {
-            event.returnValue = await this.interpret_day_totals_screen();
+        ipcMain.on('get-daily-entry-data', async (event: Event, showArchived: boolean ) => {
+            event.returnValue = await this.interpret_day_totals_screen(showArchived);
         });
         ipcMain.on('get-entry-flat-data', async (event: Event ) => {
             event.returnValue = await this.getEntryFlatData();
@@ -155,7 +155,7 @@ export default class Entryinputs {
     }
 
     public static async interpret_day_totals_exact(){
-        let rows = await this.interpret(true);
+        let rows = await this.interpret(true, false);
 
         let flat_activity_totals: any[] = [];
         let dates: { [date: string]: any } = { };
@@ -216,7 +216,7 @@ export default class Entryinputs {
 
     }
 
-    public static async interpret(last_only:boolean){
+    public static async interpret(last_only:boolean, showArchived: boolean){
         let last_entry:any = null;
         let block_total:number = 0;
         let block_total_secs:number = 0;
@@ -232,6 +232,12 @@ export default class Entryinputs {
         // TODO CONFIGURABLE
         let interval: number = 20;
         let extra_marge: number = 30;
+
+        let whereArchived: string = "(e.sticky = 0 OR e.sticky IS NULL)";
+        if(showArchived === true){
+
+            whereArchived = "true";
+        }
 
         let entries: any = await Database.all(`
                 SELECT
@@ -255,7 +261,7 @@ export default class Entryinputs {
                     ON c.id = e.tempo_customer_id
                 LEFT JOIN tempo_projects p
                     ON p.id = e.tempo_project_id
-                WHERE (e.sticky = 0 OR e.sticky IS NULL)
+                WHERE ${whereArchived}
                 ORDER BY created_at
                 `);
 
@@ -337,9 +343,9 @@ export default class Entryinputs {
     }
 
 
-    public static async interpret_day_totals_screen() {
+    public static async interpret_day_totals_screen(showArchived: boolean) {
 
-        let rows = await this.interpret(true);
+        let rows = await this.interpret(true, showArchived);
 
         let flat_activity_totals: any[] = [];
         let dates: { [date: string]: any } = { };

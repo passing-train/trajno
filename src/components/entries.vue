@@ -73,6 +73,7 @@ export default class Entries extends Vue implements Updatable {
     selected: string = "";
     extraMinutes: number = 0;
     view = "daily";
+    showArchived = false;
 
     selectedEntry: EntryData | null = null;
 
@@ -112,7 +113,7 @@ export default class Entries extends Vue implements Updatable {
     }
 
     getDailyEntryData(): DailyEntryData[] {
-        return ipcRenderer.sendSync('get-daily-entry-data');
+        return ipcRenderer.sendSync('get-daily-entry-data',this.showArchived);
     }
 
     getSelectedEntryText(): string {
@@ -168,6 +169,18 @@ export default class Entries extends Vue implements Updatable {
 
     viewTotals(){
         this.view = "totals";
+    }
+
+    toggleShowArchived(){
+        if(this.showArchived){
+            this.showArchived = false;
+        }
+        else{
+            this.showArchived = true;
+        }
+
+        this.updateEntryData();
+
     }
 
     protected formatMinutes(seconds:number):string {
@@ -288,6 +301,7 @@ export default class Entries extends Vue implements Updatable {
     <div id="entries">
 
         <div class="section">
+            <span class="is-pulled-right">show archived<br/><input type="checkbox" @change="toggleShowArchived" :checked="this.showArchived"></span>
             <button class="is-pulled-right button" @click="viewTotals">Totals</button>
             <button class="is-pulled-right button" @click="viewDaily">Daily</button>
             <div class="entryinputFlexRow">
@@ -322,7 +336,6 @@ export default class Entries extends Vue implements Updatable {
                             <td>{{formatMinutes(entry.total_time)}}</td>
                         </tr>
                     </tbody>
-
 
                 </table>
             </div>
