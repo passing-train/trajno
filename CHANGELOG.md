@@ -1,5 +1,5 @@
 # CHANGELOG
-## **WORK IN PROGRESS**
+## 0.7.2 (2022-12-01)
 - option to show/hide archived entries
 
 ## 0.7.1 (2022-11-29)
