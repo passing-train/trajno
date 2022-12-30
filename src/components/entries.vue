@@ -69,6 +69,7 @@ export default class Entries extends Vue implements Updatable {
 
     selectedEntryText: string = "";
     editEntryText: string = "";
+    selectedDailyEntries = [];
 
     selected: string = "";
     extraMinutes: number = 0;
@@ -169,6 +170,45 @@ export default class Entries extends Vue implements Updatable {
 
     viewTotals(){
         this.view = "totals";
+    }
+
+    selectToggleDailyEntry(entry: DailyEntryData){
+
+       if(this.dailyEntrySelected(entry)){
+           const id = this.selectedDailyEntries.indexOf(entry.entry_id)
+           this.selectedDailyEntries = this.selectedDailyEntries.splice(id,  1);
+       }
+       else{
+           this.selectedDailyEntries.push(entry.entry_id)
+       }
+    }
+    dailyEntrySelected(entry: DailyEntryData){
+
+        if( this.selectedDailyEntries.indexOf(entry.entry_id) >= 0 ){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    get dailyEntriesSelectionFilled(){
+        if( this.selectedDailyEntries.length > 0 ){
+            console.log(this.selectedDailyEntries);
+            return true;
+        }
+        else{
+            return false;
+        }
+
+    }
+    dailyEntriesSelectionEmpty(){
+        if( this.selectedDailyEntries.length >= 0 ){
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 
     toggleShowArchived(){
@@ -347,6 +387,7 @@ export default class Entries extends Vue implements Updatable {
                 <table class="table is-narrow" id="entriesTable">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Entry</th>
                             <th>Customer</th>
                             <th>Project</th>
@@ -356,6 +397,7 @@ export default class Entries extends Vue implements Updatable {
 
                     <tbody v-for="day in this.dailyEntryData" :key="day.date">
                         <tr style="background-color: #559cbf; color: white; ">
+                            <td></td>
                             <td>{{formatDate(day.date)}}</td>
                             <td></td>
                             <td></td>
@@ -363,6 +405,7 @@ export default class Entries extends Vue implements Updatable {
                         </tr>
 
                         <tr v-for="entry in day.activities" :key="entry.entry_id" @click="clickEntryDaily(entry)" class='hover' :class="{selected: selectedEntryId === entry.entry_id}">
+                            <td><input type="checkbox" style="position:relative;" @change="selectToggleDailyEntry(entry)" @selected="dailyEntrySelected(entry)" /></td>
                             <td>{{entry.entry_text}}</td>
                             <td>{{entry.customer_name}}</td>
                             <td>{{entry.project_name}}</td>
@@ -431,7 +474,7 @@ export default class Entries extends Vue implements Updatable {
                 </div>
 
                 <div class="entryinputOption">
-                    <button @click="saveRecord()">Save</button>
+                    <button @click="saveRecord()" :disabled="dailyEntriesSelectionFilled">Save</button>
                     <button @click="deleteRecord()">Delete</button>
                     <button @click="archiveRecord()">Archive</button>
                 </div>
