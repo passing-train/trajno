@@ -69,7 +69,7 @@ export default class Entries extends Vue implements Updatable {
 
     selectedEntryText: string = "";
     editEntryText: string = "";
-    selectedDailyEntries = [];
+    selectedDailyEntries: number[] = [];
 
     selected: string = "";
     extraMinutes: number = 0;
@@ -176,7 +176,14 @@ export default class Entries extends Vue implements Updatable {
 
        if(this.dailyEntrySelected(entry)){
            const id = this.selectedDailyEntries.indexOf(entry.entry_id)
-           this.selectedDailyEntries = this.selectedDailyEntries.splice(id,  1);
+           if(this.selectedDailyEntries.length === 1){
+               this.selectedDailyEntries = [];
+           }
+           else{
+               this.selectedDailyEntries = this.selectedDailyEntries.splice(id,  1);
+
+           }
+           console.log(this.selectedDailyEntries)
        }
        else{
            this.selectedDailyEntries.push(entry.entry_id)
@@ -184,10 +191,13 @@ export default class Entries extends Vue implements Updatable {
     }
     dailyEntrySelected(entry: DailyEntryData){
 
+        console.log(this.selectedDailyEntries.indexOf(entry.entry_id));
         if( this.selectedDailyEntries.indexOf(entry.entry_id) >= 0 ){
+            console.log("selected: yes")
             return true;
         }
         else{
+            console.log("selected: no")
             return false;
         }
     }
