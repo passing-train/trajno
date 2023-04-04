@@ -1,5 +1,5 @@
 # CHANGELOG
-## **WORK IN PROGRESS**
+## 0.7.3 (2023-04-04)
 - reable exact export
 
 ## 0.7.2 (2022-12-01)
