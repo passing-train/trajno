@@ -429,8 +429,6 @@ export default class Entries extends Vue implements Updatable {
             </div>
         </div>
 
-
-
         <div class="section" id="editSection">
             <div id="col1">
                 <div>

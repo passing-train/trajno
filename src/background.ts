@@ -387,7 +387,7 @@ function resume() {
 async function hideWindowUntillNextQuestion(){
 //    let minutes = 0.1;
     let minutes:number = await Settings.getIntSetting('questionIntervalMinutes');
-    log.debug(minutes);
+    //log.debug(minutes);
 
     win.hide();
 
@@ -421,8 +421,8 @@ async function exportTotalsForExact(){
     if(!filename.canceled){
         let fpath = filename.filePath;
         if(fpath != undefined){
-            log.debug(await Entryinputs.interpret_day_totals_exact());
-            //Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
+            //log.debug(await Entryinputs.interpret_day_totals_screen());
+            Exporter.writeEntryDayTotalsToCSV(fpath, await Entryinputs.interpret_day_totals_exact());
         }
     }
 }

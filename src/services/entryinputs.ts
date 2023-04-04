@@ -168,7 +168,6 @@ export default class Entryinputs {
             dates[entry.date].push(entry);
         });
 
-
         Object.keys(dates).forEach((date:string)=>{
             if(!dates_with_totals.hasOwnProperty(date)){
                 dates_with_totals[date] = {
@@ -210,7 +209,6 @@ export default class Entryinputs {
                 });
             });
         });
-
 
         return flat_activity_totals;
 
@@ -337,11 +335,8 @@ export default class Entryinputs {
             last_entry = entry;
         }));
 
-
-
         return rows;
     }
-
 
     public static async interpret_day_totals_screen(showArchived: boolean) {
 
