@@ -1,5 +1,6 @@
 # CHANGELOG
 ## **WORK IN PROGRESS**
+- reable exact export
 
 ## 0.7.2 (2022-12-01)
 - option to show/hide archived entries
